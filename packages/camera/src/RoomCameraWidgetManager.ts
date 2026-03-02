@@ -28,7 +28,14 @@ export class RoomCameraWidgetManager implements IRoomCameraWidgetManager
 
             if(effect.colorMatrix.length)
             {
-                cameraEffect.colorMatrix = effect.colorMatrix;
+                // Config offsets (indices 4,9,14,19) follow Flash's 0-255 convention.
+                // PixiJS v8 expects the full matrix in 0-1 space, so normalise them.
+                const m = [ ...effect.colorMatrix ] as ColorMatrix;
+                m[4]  /= 255;
+                m[9]  /= 255;
+                m[14] /= 255;
+                m[19] /= 255;
+                cameraEffect.colorMatrix = m;
             }
             else
             {
@@ -57,29 +64,7 @@ export class RoomCameraWidgetManager implements IRoomCameraWidgetManager
 
         const filters: Filter[] = [];
 
-        const getColorMatrixFilter = (matrix: ColorMatrix, flag: boolean, strength: number): ColorMatrixFilter =>
-        {
-            const filter = new ColorMatrixFilter();
-
-            if(flag)
-            {
-                filter.matrix = matrix;
-            }
-            else
-            {
-                const newMatrix: ColorMatrix = [];
-                const otherMatrix: ColorMatrix = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
-
-                for(let i = 0; i < matrix.length; i++)
-                {
-                    newMatrix.push((matrix[i] * strength) + (otherMatrix[i] * (1 - strength)));
-                }
-
-                filter.matrix = newMatrix;
-            }
-
-            return filter;
-        };
+        const identityMatrix: ColorMatrix = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
 
         for(const selectedEffect of effects)
         {
@@ -89,7 +74,10 @@ export class RoomCameraWidgetManager implements IRoomCameraWidgetManager
 
             if(effect.colorMatrix)
             {
-                const filter = getColorMatrixFilter(effect.colorMatrix, false, selectedEffect.strength);
+                const filter = new ColorMatrixFilter();
+                const strength = selectedEffect.strength;
+
+                filter.matrix = effect.colorMatrix.map((val, i) => identityMatrix[i] + (val - identityMatrix[i]) * strength) as ColorMatrix;
 
                 filters.push(filter);
             }
