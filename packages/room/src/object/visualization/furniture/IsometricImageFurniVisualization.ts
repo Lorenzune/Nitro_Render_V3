@@ -80,10 +80,8 @@ export class IsometricImageFurniVisualization extends FurnitureAnimatedVisualiza
                 const asset = this.getAsset(assetName, layerId);
                 const thumbnailAssetName = `${this.getThumbnailAssetName(scale)}-${this._uniqueId}`;
                 const transformedTexture = this.generateTransformedThumbnail(k, asset || { width: 64, height: 64 });
-                const sprite = new Sprite(transformedTexture);
-                const bounds = sprite.getLocalBounds();
-                const offsetX = -Math.floor(bounds.width / 2);
-                const offsetY = -Math.floor(bounds.height / 2);
+                const offsetX = asset ? asset.offsetX : -Math.floor(transformedTexture.width / 2);
+                const offsetY = asset ? asset.offsetY : -Math.floor(transformedTexture.height / 2);
 
                 this.asset.addAsset(thumbnailAssetName, transformedTexture, true, offsetX, offsetY, false, false);
 

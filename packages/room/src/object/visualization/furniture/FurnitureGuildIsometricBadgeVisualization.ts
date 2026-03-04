@@ -12,16 +12,30 @@ export class FurnitureGuildIsometricBadgeVisualization extends IsometricImageFur
 
     private _color1: number;
     private _color2: number;
+    private _cachedAssetName: string;
+
+    constructor()
+    {
+        super();
+
+        this._cachedAssetName = null;
+    }
 
     protected updateModel(scale: number): boolean
     {
         const flag = super.updateModel(scale);
 
-        if(!this.hasThumbnailImage)
-        {
-            const assetName = this.object.model.getValue<string>(RoomObjectVariable.FURNITURE_GUILD_CUSTOMIZED_ASSET_NAME);
+        const assetName = this.object.model.getValue<string>(RoomObjectVariable.FURNITURE_GUILD_CUSTOMIZED_ASSET_NAME);
 
-            if(assetName && assetName.length) this.setThumbnailImages(this.getBitmapAsset(assetName));
+        if(assetName && assetName.length && assetName !== this._cachedAssetName)
+        {
+            const texture = this.getBitmapAsset(assetName);
+
+            if(texture)
+            {
+                this._cachedAssetName = assetName;
+                this.setThumbnailImages(texture);
+            }
         }
 
         const color1 = this.object.model.getValue<number>(RoomObjectVariable.FURNITURE_GUILD_CUSTOMIZED_COLOR_1);
@@ -37,9 +51,11 @@ export class FurnitureGuildIsometricBadgeVisualization extends IsometricImageFur
 
     protected generateTransformedThumbnail(texture: Texture, asset: IGraphicAsset): Texture
     {
-        const scale = 1.1;
+        const renderWidth = asset.width || 64;
+        const renderHeight = asset.height || renderWidth;
+        const difference = (renderWidth / texture.width);
+        const dScale = (renderHeight - 0.5 * renderWidth) / texture.height;
         const matrix = new Matrix();
-        const difference = (asset.width / texture.width);
 
         switch(this.direction)
         {
@@ -47,16 +63,16 @@ export class FurnitureGuildIsometricBadgeVisualization extends IsometricImageFur
                 matrix.a = difference;
                 matrix.b = (-0.5 * difference);
                 matrix.c = 0;
-                matrix.d = (difference * scale);
+                matrix.d = dScale;
                 matrix.tx = 0;
-                matrix.ty = ((0.5 * difference) * texture.width);
+                matrix.ty = (0.5 * renderWidth);
                 break;
             case 0:
             case 4:
                 matrix.a = difference;
                 matrix.b = (0.5 * difference);
                 matrix.c = 0;
-                matrix.d = (difference * scale);
+                matrix.d = dScale;
                 matrix.tx = 0;
                 matrix.ty = 0;
                 break;
@@ -69,43 +85,7 @@ export class FurnitureGuildIsometricBadgeVisualization extends IsometricImageFur
                 matrix.ty = 0;
         }
 
-        const sprite = new Sprite(texture);
-
-        sprite.setFromMatrix(matrix);
-
-        sprite.x = 0;
-        sprite.y = 0;
-
-        return TextureUtils.generateTexture(sprite);
-
-        /* const renderTexture = RenderTexture.create({
-            width: asset.width,
-            height: asset.height
-        });
-
-        PixiApplicationProxy.instance.renderer.render(sprite, {
-            renderTexture,
-            clear: true,
-        });
-
-        return renderTexture; */
-
-        /* const sprite = new NitroSprite(texture);
-
-        const renderTexture = RenderTexture.create({
-            width: (asset.width + matrix.tx),
-            height: (asset.height + matrix.ty)
-        });
-
-        sprite.position.set(0)
-
-        PixiApplicationProxy.instance.renderer.render(sprite, {
-            renderTexture,
-            clear: true,
-            transform: matrix
-        });
-
-        return renderTexture; */
+        return TextureUtils.createAndWriteRenderTexture(renderWidth, renderHeight, new Sprite(texture), matrix);
     }
 
     protected getLayerColor(scale: number, layerId: number, colorId: number): number
