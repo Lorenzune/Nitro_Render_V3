@@ -30,7 +30,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
     private static BASE_Y_SCALE: number = 1000;
     private static AVATAR_SPRITE_DEFAULT_DEPTH: number = -0.01;
     private static AVATAR_OWN_DEPTH_ADJUST: number = 0.001;
-    private static AVATAR_SPRITE_LAYING_DEPTH: number = -0.409;
+    private static AVATAR_SPRITE_LAYING_DEPTH: number = 0.2;
 
     protected _data: AvatarVisualizationData;
 
@@ -68,6 +68,9 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
     private _isLaying: boolean;
     private _layInside: boolean;
+    private _layDepthOffset: number;
+    private _layXOffset: number;
+    private _layYOffset: number;
     private _isAnimating: boolean;
     private _extraSpritesStartIndex: number;
     private _forcedAnimFrames: number;
@@ -123,6 +126,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
         this._isLaying = false;
         this._layInside = false;
+        this._layDepthOffset = 0;
         this._isAnimating = false;
         this._extraSpritesStartIndex = AvatarVisualization.INITIAL_RESERVED_SPRITES;
         this._forcedAnimFrames = 0;
@@ -320,12 +324,23 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                 {
                     sprite.offsetX = ((((-1 * scale) / 2) + _local_20[0]) - ((sprite.texture.width - scale) / 2));
                     sprite.offsetY = (((-(sprite.texture.height) + (scale / 4)) + _local_20[1]) + this._postureOffset);
+
+                    if(this._isLaying)
+                    {
+                        // Convert isometric ground-plane offsets to screen pixels
+                        // isoX moves along one diagonal, isoY along the other
+                        sprite.offsetX += (this._layXOffset - this._layYOffset);
+                        sprite.offsetY += Math.floor((this._layXOffset + this._layYOffset) / 2);
+                    }
                 }
 
                 if(this._isLaying)
                 {
-                    if(this._layInside) sprite.relativeDepth = -0.5;
-                    else sprite.relativeDepth = (AvatarVisualization.AVATAR_SPRITE_LAYING_DEPTH + _local_20[2]);
+                    // Compensate for avatar Z elevation so it sorts near the bed's depth
+                    // layInside: avatar slightly behind bed (tucked in under blanket)
+                    // !layInside: avatar slightly in front of bed (on top)
+                    const laySign = this._layInside ? AvatarVisualization.AVATAR_SPRITE_LAYING_DEPTH : -AvatarVisualization.AVATAR_SPRITE_LAYING_DEPTH;
+                    sprite.relativeDepth = (laySign - this._layDepthOffset + _local_20[2]);
                 }
                 else
                 {
@@ -347,8 +362,15 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
             if(typingBubble)
             {
-                if(!this._isLaying) typingBubble.relativeDepth = ((AvatarVisualization.AVATAR_SPRITE_DEFAULT_DEPTH - 0.01) + _local_20[2]);
-                else typingBubble.relativeDepth = ((AvatarVisualization.AVATAR_SPRITE_LAYING_DEPTH - 0.01) + _local_20[2]);
+                if(!this._isLaying)
+                {
+                    typingBubble.relativeDepth = ((AvatarVisualization.AVATAR_SPRITE_DEFAULT_DEPTH - 0.01) + _local_20[2]);
+                }
+                else
+                {
+                    const laySign = this._layInside ? AvatarVisualization.AVATAR_SPRITE_LAYING_DEPTH : -AvatarVisualization.AVATAR_SPRITE_LAYING_DEPTH;
+                    typingBubble.relativeDepth = ((laySign - this._layDepthOffset - 0.01) + _local_20[2]);
+                }
             }
 
             this._isAnimating = this._avatarImage.isAnimating();
@@ -449,7 +471,8 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
                         if(this._isLaying)
                         {
-                            sprite.relativeDepth = (AvatarVisualization.AVATAR_SPRITE_LAYING_DEPTH - ((0.001 * this.totalSprites) * offsetZ));
+                            const laySign = this._layInside ? AvatarVisualization.AVATAR_SPRITE_LAYING_DEPTH : -AvatarVisualization.AVATAR_SPRITE_LAYING_DEPTH;
+                            sprite.relativeDepth = (laySign - this._layDepthOffset - ((0.001 * this.totalSprites) * offsetZ));
                         }
                         else
                         {
@@ -918,7 +941,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
         if((this._posture === 'sit') || (this._posture === 'lay'))
         {
-            this._postureOffset = (scale / 2);
+            this._postureOffset = ((AvatarVisualization.BASE_Y_SCALE + this._verticalOffset) * scale) / (4 * AvatarVisualization.BASE_Y_SCALE);
         }
         else
         {
@@ -927,14 +950,30 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
         this._layInside = false;
         this._isLaying = false;
+        this._layDepthOffset = 0;
+        this._layXOffset = 0;
+        this._layYOffset = 0;
 
         if(this._posture === 'lay')
         {
             this._isLaying = true;
 
-            const _local_2 = parseInt(this._postureParameter);
+            // Format from server: "height;xOffset;yOffset" or just "height"
+            const parts = this._postureParameter ? this._postureParameter.split(';') : [];
+            const height = parts.length > 0 ? parseFloat(parts[0]) : 0;
 
-            if(_local_2 < 0) this._layInside = true;
+            if(height < 0) this._layInside = true;
+
+            // Use the avatar's actual Z position for depth compensation
+            // This makes the renderer independent of what Z offset the emulator sends
+            const avatarZ = this.object ? this.object.getLocation().z : 0;
+            this._layDepthOffset = avatarZ * Math.sqrt(0.5);
+
+            if(parts.length >= 3)
+            {
+                this._layXOffset = parseFloat(parts[1]) || 0;
+                this._layYOffset = parseFloat(parts[2]) || 0;
+            }
         }
     }
 

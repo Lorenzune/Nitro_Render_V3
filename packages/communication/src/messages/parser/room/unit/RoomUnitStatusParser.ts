@@ -2,6 +2,13 @@ import { IMessageDataWrapper, IMessageParser } from '@nitrots/api';
 import { RoomUnitStatusAction } from './RoomUnitStatusAction';
 import { RoomUnitStatusMessage } from './RoomUnitStatusMessage';
 
+function parseLocaleFloat(value: string): number
+{
+    if(!value) return 0;
+
+    return parseFloat(value.replace(',', '.'));
+}
+
 export class RoomUnitStatusParser implements IMessageParser
 {
     private _statuses: RoomUnitStatusMessage[];
@@ -45,7 +52,7 @@ export class RoomUnitStatusParser implements IMessageParser
         const unitId = wrapper.readInt();
         const x = wrapper.readInt();
         const y = wrapper.readInt();
-        const z = parseFloat(wrapper.readString());
+        const z = parseLocaleFloat(wrapper.readString());
         const headDirection = ((wrapper.readInt() % 8) * 45);
         const direction = ((wrapper.readInt() % 8) * 45);
         const actions = wrapper.readString();
@@ -80,14 +87,14 @@ export class RoomUnitStatusParser implements IMessageParser
                             {
                                 targetX = parseInt(values[0]);
                                 targetY = parseInt(values[1]);
-                                targetZ = parseFloat(values[2]);
+                                targetZ = parseLocaleFloat(values[2]);
                                 didMove = true;
                             }
 
                             break;
                         }
                         case 'sit': {
-                            const sitHeight = parseFloat(parts[1]);
+                            const sitHeight = parseLocaleFloat(parts[1]);
 
                             if(parts.length >= 3) canStandUp = (parts[2] === '1');
 
@@ -96,9 +103,7 @@ export class RoomUnitStatusParser implements IMessageParser
                             break;
                         }
                         case 'lay': {
-                            const layHeight = parseFloat(parts[1]);
-
-                            height = Math.abs(layHeight);
+                            height = parseLocaleFloat(parts[1]);
 
                             break;
                         }

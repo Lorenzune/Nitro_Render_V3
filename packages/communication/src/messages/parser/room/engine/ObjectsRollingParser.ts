@@ -1,6 +1,13 @@
 import { IMessageDataWrapper, IMessageParser, ObjectRolling } from '@nitrots/api';
 import { Vector3d } from '@nitrots/utils';
 
+function parseLocaleFloat(value: string): number
+{
+    if(!value) return 0;
+
+    return parseFloat(value.replace(',', '.'));
+}
+
 export class ObjectsRollingParser implements IMessageParser
 {
     private _rollerId: number;
@@ -31,8 +38,8 @@ export class ObjectsRollingParser implements IMessageParser
         while(totalItems > 0)
         {
             const id = wrapper.readInt();
-            const height = parseFloat(wrapper.readString());
-            const nextHeight = parseFloat(wrapper.readString());
+            const height = parseLocaleFloat(wrapper.readString());
+            const nextHeight = parseLocaleFloat(wrapper.readString());
             const rollingData = new ObjectRolling(id, new Vector3d(x, y, height), new Vector3d(nextX, nextY, nextHeight));
 
             this._itemsRolling.push(rollingData);
@@ -46,8 +53,8 @@ export class ObjectsRollingParser implements IMessageParser
 
         const movementType = wrapper.readInt();
         const unitId = wrapper.readInt();
-        const height = parseFloat(wrapper.readString());
-        const nextHeight = parseFloat(wrapper.readString());
+        const height = parseLocaleFloat(wrapper.readString());
+        const nextHeight = parseLocaleFloat(wrapper.readString());
 
         switch(movementType)
         {

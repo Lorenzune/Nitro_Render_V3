@@ -1,6 +1,13 @@
 import { IMessageDataWrapper, IMessageParser, RoomObjectType } from '@nitrots/api';
 import { UserMessageData } from './UserMessageData';
 
+function parseLocaleFloat(value: string): number
+{
+    if(!value) return 0;
+
+    return parseFloat(value.replace(',', '.'));
+}
+
 export class RoomUnitParser implements IMessageParser
 {
     private _users: UserMessageData[];
@@ -34,7 +41,7 @@ export class RoomUnitParser implements IMessageParser
             const roomIndex = wrapper.readInt();
             const x = wrapper.readInt();
             const y = wrapper.readInt();
-            const z = parseFloat(wrapper.readString());
+            const z = parseLocaleFloat(wrapper.readString());
             const direction = wrapper.readInt();
             const type = wrapper.readInt();
 

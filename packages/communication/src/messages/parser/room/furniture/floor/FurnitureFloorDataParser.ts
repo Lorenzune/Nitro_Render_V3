@@ -1,6 +1,13 @@
 import { IMessageDataWrapper, IObjectData } from '@nitrots/api';
 import { FurnitureDataParser } from '../FurnitureDataParser';
 
+function parseLocaleFloat(value: string): number
+{
+    if(!value) return 0;
+
+    return parseFloat(value.replace(',', '.'));
+}
+
 export class FurnitureFloorDataParser
 {
     private _itemId: number;
@@ -57,8 +64,8 @@ export class FurnitureFloorDataParser
         this._x = wrapper.readInt();
         this._y = wrapper.readInt();
         this._direction = ((wrapper.readInt() % 8) * 45);
-        this._z = parseFloat(wrapper.readString());
-        this._stackHeight = parseFloat(wrapper.readString());
+        this._z = parseLocaleFloat(wrapper.readString());
+        this._stackHeight = parseLocaleFloat(wrapper.readString());
         this._extra = wrapper.readInt();
         this._data = FurnitureDataParser.parseObjectData(wrapper);
         this._state = parseFloat(this._data && this._data.getLegacyString()) || 0;
