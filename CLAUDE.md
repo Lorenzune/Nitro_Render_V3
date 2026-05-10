@@ -109,10 +109,14 @@ for the React-side bridge code.
 - **`SessionDataManager.getUserData(id)` does NOT exist.** Some legacy
   code in the React client used it under a `getUserData ?` truthy guard;
   the branch was always dead. Only `getUserDataSnapshot()` exists.
-- `IRoomSession.sendChatMessage` / `sendShoutMessage` require **3 args**
-  (text, styleId, chatColour). The React client's chat-input legacy
-  passes 2 — known pre-existing gap, do not "fix" the client without
-  also threading chatColour through the chat composer pipeline.
+- `IRoomSession.sendChatMessage` / `sendShoutMessage` accept an optional
+  `chatColour` 3rd arg (was required pre-2.1.1, now optional to match
+  the historical call sites in the React client). The implementation
+  forwards `undefined` to the composer just fine; pass a value only when
+  you need a specific bubble colour.
+- `IRoomSession.password` and `IRoomSession.sendBackgroundMessage` are
+  now part of the public interface (they always existed on the
+  implementation class — interface caught up).
 - The renderer is **synchronous**: `EventDispatcher.dispatchEvent` is a
   synchronous loop over listeners. Don't add `await` inside the
   `processEvent` loop — it would change ordering guarantees that
