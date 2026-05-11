@@ -1,8 +1,8 @@
 import { IMessageComposer } from '@nitrots/api';
 
-export class WiredRoomSettingsRequestComposer implements IMessageComposer<ConstructorParameters<typeof WiredRoomSettingsRequestComposer>>
+export class WiredRoomSettingsRequestComposer implements IMessageComposer<[]>
 {
-    public getMessageArray()
+    public getMessageArray(): []
     {
         return [];
     }

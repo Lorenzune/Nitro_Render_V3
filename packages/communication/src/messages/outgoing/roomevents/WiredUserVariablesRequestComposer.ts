@@ -1,8 +1,8 @@
 import { IMessageComposer } from '@nitrots/api';
 
-export class WiredUserVariablesRequestComposer implements IMessageComposer<ConstructorParameters<typeof WiredUserVariablesRequestComposer>>
+export class WiredUserVariablesRequestComposer implements IMessageComposer<[]>
 {
-    public getMessageArray()
+    public getMessageArray(): []
     {
         return [];
     }
