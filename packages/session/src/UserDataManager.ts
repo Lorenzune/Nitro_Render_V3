@@ -169,7 +169,7 @@ export class UserDataManager implements IUserDataManager
         userData.displayOrder = displayOrder;
     }
 	
-	public updateBackground(roomIndex: number, background: number, stand: number, overlay: number, cardBackground: number = 0): void
+	public updateBackground(roomIndex: number, background: number, stand: number, overlay: number, cardBackground: number = 0, borderId: number = 0): void
     {
         const userData = this.getUserDataByIndex(roomIndex);
 
@@ -179,6 +179,7 @@ export class UserDataManager implements IUserDataManager
         userData.stand = stand;
         userData.overlay = overlay;
         userData.cardBackground = cardBackground;
+        userData.borderId = borderId;
     }
 
     public updateAchievementScore(roomIndex: number, score: number): void
