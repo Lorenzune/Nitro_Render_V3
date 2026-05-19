@@ -1,5 +1,5 @@
 import { IFurnitureData, IGroupInformationManager, IMessageComposer, IMessageEvent, IProductData, ISessionDataManager, IUserDataSnapshot, NoobnessLevelEnum, SecurityLevel } from '@nitrots/api';
-import { AccountSafetyLockStatusChangeMessageEvent, AccountSafetyLockStatusChangeParser, AvailabilityStatusMessageEvent, ChangeUserNameResultMessageEvent, EmailStatusResultEvent, FigureUpdateEvent, GetCommunication, GetUserTagsComposer, InClientLinkEvent, MysteryBoxKeysEvent, NoobnessLevelMessageEvent, PetRespectComposer, PetScratchFailedMessageEvent, RoomReadyMessageEvent, RoomUnitChatComposer, UserInfoEvent, UserNameChangeMessageEvent, UserPermissionsEvent, UserRespectComposer, UserTagsMessageEvent } from '@nitrots/communication';
+import { AccountSafetyLockStatusChangeMessageEvent, AccountSafetyLockStatusChangeParser, AvailabilityStatusMessageEvent, ChangeUserNameResultMessageEvent, EmailStatusResultEvent, FigureUpdateEvent, GetCommunication, GetUserTagsComposer, InClientLinkEvent, MysteryBoxKeysEvent, NoobnessLevelMessageEvent, PetRespectComposer, PetScratchFailedMessageEvent, RoomReadyMessageEvent, RoomUnitChatComposer, UserInfoEvent, UserNameChangeMessageEvent, UserPermissionsEvent, UserPermissionsMapEvent, UserRespectComposer, UserTagsMessageEvent } from '@nitrots/communication';
 import { GetConfiguration } from '@nitrots/configuration';
 import { GetLocalizationManager } from '@nitrots/localization';
 import { GetEventDispatcher, MysteryBoxKeysUpdateEvent, NitroEvent, NitroEventType, NitroSettingsEvent, SessionDataPreferencesEvent, UserNameUpdateEvent } from '@nitrots/events';
@@ -59,6 +59,9 @@ export class SessionDataManager implements ISessionDataManager
 
     private _userDataSnapshot: Readonly<IUserDataSnapshot> | null = null;
 
+    private _permissions: Map<string, number> = new Map();
+    private _permissionsSnapshot: ReadonlyMap<string, number> | null = null;
+
     constructor()
     {
         this.resetUserInfo();
@@ -69,6 +72,36 @@ export class SessionDataManager implements ISessionDataManager
         this._userDataSnapshot = null;
 
         GetEventDispatcher().dispatchEvent(new NitroEvent(NitroEventType.SESSION_DATA_UPDATED));
+    }
+
+    private invalidatePermissionsSnapshot(): void
+    {
+        this._permissionsSnapshot = null;
+
+        GetEventDispatcher().dispatchEvent(new NitroEvent(NitroEventType.USER_PERMISSIONS_UPDATED));
+    }
+
+    /**
+     * Resolved permission map for the current user — mirror of
+     * `permission_definitions` for the user's rank, filtered to keys
+     * with `PermissionSetting != DISALLOWED`. Wire-fed by
+     * `UserPermissionsMapEvent` (Arcturus ≥ 4.2.10). Older emulators
+     * that don't ship the new packet leave the snapshot empty; React
+     * consumers via `useHasPermission(key)` then degrade gracefully
+     * (every gate returns false → mod UI hidden, which is the safe
+     * default).
+     *
+     * Referentially stable until the next
+     * `UserPermissionsMapEvent` arrives (e.g. after
+     * `HabboManager.setRank`).
+     */
+    public getPermissionsSnapshot(): ReadonlyMap<string, number>
+    {
+        if(this._permissionsSnapshot) return this._permissionsSnapshot;
+
+        this._permissionsSnapshot = new Map(this._permissions) as ReadonlyMap<string, number>;
+
+        return this._permissionsSnapshot;
     }
 
     public getUserDataSnapshot(): Readonly<IUserDataSnapshot>
@@ -128,6 +161,7 @@ export class SessionDataManager implements ISessionDataManager
             })),
             GetCommunication().registerMessageEvent(new UserInfoEvent(this.onUserInfoEvent.bind(this))),
             GetCommunication().registerMessageEvent(new UserPermissionsEvent(this.onUserPermissionsEvent.bind(this))),
+            GetCommunication().registerMessageEvent(new UserPermissionsMapEvent(this.onUserPermissionsMapEvent.bind(this))),
             GetCommunication().registerMessageEvent(new AvailabilityStatusMessageEvent(this.onAvailabilityStatusMessageEvent.bind(this))),
             GetCommunication().registerMessageEvent(new PetScratchFailedMessageEvent(this.onPetRespectFailed.bind(this))),
             GetCommunication().registerMessageEvent(new ChangeUserNameResultMessageEvent(this.onChangeNameUpdateEvent.bind(this))),
@@ -261,6 +295,17 @@ export class SessionDataManager implements ISessionDataManager
         this._rankPrefixColor = parser.rankPrefixColor;
 
         this.invalidateUserDataSnapshot();
+    }
+
+    private onUserPermissionsMapEvent(event: UserPermissionsMapEvent): void
+    {
+        if(!event || !event.connection) return;
+
+        // Copy into our local mutable Map so the parser's reference (which
+        // is overwritten on every parse() call) can't leak back to consumers.
+        this._permissions = new Map(event.getParser().permissions);
+
+        this.invalidatePermissionsSnapshot();
     }
 
     private onAvailabilityStatusMessageEvent(event: AvailabilityStatusMessageEvent): void

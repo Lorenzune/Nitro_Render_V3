@@ -23,4 +23,5 @@ export class NitroEventType
     public static readonly GROUP_BADGES_UPDATED = 'GROUP_BADGES_UPDATED';
     public static readonly ROOM_USER_LIST_UPDATED = 'ROOM_USER_LIST_UPDATED';
     public static readonly SOUND_VOLUMES_UPDATED = 'SOUND_VOLUMES_UPDATED';
+    public static readonly USER_PERMISSIONS_UPDATED = 'USER_PERMISSIONS_UPDATED';
 }

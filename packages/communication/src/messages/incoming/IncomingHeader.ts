@@ -255,6 +255,8 @@ export class IncomingHeader
     public static USER_OUTFITS = 3315;
     public static USER_PERKS = 2586;
     public static USER_PERMISSIONS = 411;
+    // Resolved permission map (Arcturus extension, Outgoing.UserPermissionsMapComposer = 10070).
+    public static USER_PERMISSIONS_MAP = 10070;
     public static USER_PET_ADD = 2101;
     public static USER_PET_REMOVE = 3253;
     public static USER_PETS = 3522;
