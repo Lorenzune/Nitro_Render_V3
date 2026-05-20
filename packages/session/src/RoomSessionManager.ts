@@ -1,6 +1,6 @@
-import { IRoomHandlerListener, IRoomSession, IRoomSessionManager } from '@nitrots/api';
+import { IRoomHandlerListener, IRoomSession, IRoomSessionManager, IRoomSessionSnapshot } from '@nitrots/api';
 import { GetCommunication, RoomEnterComposer, RoomUnitWalkComposer } from '@nitrots/communication';
-import { GetEventDispatcher, NitroEventType, RoomSessionEvent } from '@nitrots/events';
+import { GetEventDispatcher, NitroEvent, NitroEventType, RoomSessionEvent } from '@nitrots/events';
 import { NitroLogger } from '@nitrots/utils';
 import { RoomSession } from './RoomSession';
 import { BaseHandler, GenericErrorHandler, PetPackageHandler, PollHandler, RoomChatHandler, RoomDataHandler, RoomDimmerPresetsHandler, RoomPermissionsHandler, RoomPresentHandler, RoomSessionHandler, RoomUsersHandler, WordQuizHandler } from './handler';
@@ -26,6 +26,41 @@ export class RoomSessionManager implements IRoomSessionManager, IRoomHandlerList
     private _pendingRoomClear: ReturnType<typeof setTimeout> = null;
     private _savedPosX: number = -1;
     private _savedPosY: number = -1;
+    private _activeRoomSessionSnapshot: Readonly<IRoomSessionSnapshot> | null = null;
+
+    private invalidateRoomSessionSnapshot(): void
+    {
+        this._activeRoomSessionSnapshot = null;
+
+        GetEventDispatcher().dispatchEvent(new NitroEvent(NitroEventType.ROOM_SESSION_UPDATED));
+    }
+
+    public getActiveRoomSessionSnapshot(): Readonly<IRoomSessionSnapshot> | null
+    {
+        const session = this._viewerSession;
+
+        if(!session) return null;
+
+        if(this._activeRoomSessionSnapshot && this._activeRoomSessionSnapshot.session === session) return this._activeRoomSessionSnapshot;
+
+        this._activeRoomSessionSnapshot = Object.freeze<IRoomSessionSnapshot>({
+            roomId: session.roomId,
+            state: session.state,
+            isRoomOwner: session.isRoomOwner,
+            isSpectator: session.isSpectator,
+            isDecorating: session.isDecorating,
+            isGuildRoom: session.isGuildRoom,
+            isPrivateRoom: session.isPrivateRoom,
+            controllerLevel: session.controllerLevel,
+            doorMode: session.doorMode,
+            tradeMode: session.tradeMode,
+            allowPets: session.allowPets,
+            groupId: session.groupId,
+            session
+        });
+
+        return this._activeRoomSessionSnapshot;
+    }
 
     public async init(): Promise<void>
     {
@@ -196,6 +231,7 @@ export class RoomSessionManager implements IRoomSessionManager, IRoomHandlerList
 
         this._sessions.clear();
         this._viewerSession = null;
+        this.invalidateRoomSessionSnapshot();
         this.createSession(roomId, password, this._savedPosX, this._savedPosY);
         this.clearGuardTimer();
         this._reconnectGuardTimer = setTimeout(() =>
@@ -384,6 +420,8 @@ export class RoomSessionManager implements IRoomSessionManager, IRoomHandlerList
         this._lastRoomPassword = roomSession.password;
         this.persistRoom(roomSession.roomId, roomSession.password);
 
+        this.invalidateRoomSessionSnapshot();
+
         this.startSession(this._viewerSession);
 
         return true;
@@ -405,6 +443,8 @@ export class RoomSessionManager implements IRoomSessionManager, IRoomHandlerList
         GetEventDispatcher().dispatchEvent(new RoomSessionEvent(RoomSessionEvent.STARTED, session));
 
         this.setHandlers(session);
+
+        this.invalidateRoomSessionSnapshot();
 
         return true;
     }
@@ -429,6 +469,10 @@ export class RoomSessionManager implements IRoomSessionManager, IRoomHandlerList
         }
 
         GetEventDispatcher().dispatchEvent(new RoomSessionEvent(RoomSessionEvent.ENDED, session, openLandingView));
+
+        if(this._viewerSession === session) this._viewerSession = null;
+
+        this.invalidateRoomSessionSnapshot();
     }
 
     public sessionUpdate(id: number, type: string): void

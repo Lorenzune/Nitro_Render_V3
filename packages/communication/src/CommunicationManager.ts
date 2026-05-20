@@ -203,6 +203,17 @@ export class CommunicationManager implements ICommunicationManager
         this._connection.removeMessageEvent(event);
     }
 
+    public subscribeMessage<T extends IMessageEvent>(eventCtor: new (callback: (event: T) => void) => T, handler: (event: T) => void): () => void
+    {
+        if(!eventCtor || !handler) return () => {};
+
+        const event = new eventCtor(handler);
+
+        this.registerMessageEvent(event);
+
+        return () => this.removeMessageEvent(event);
+    }
+
     public get connection(): IConnection
     {
         return this._connection;

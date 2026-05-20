@@ -1,4 +1,4 @@
-import { ICodec, IConnection, IMessageComposer, IMessageConfiguration, IMessageDataWrapper, IMessageEvent, WebSocketEventEnum } from '@nitrots/api';
+import { ICodec, IConnection, IMessageComposer, IMessageConfiguration, IMessageDataWrapper, IMessageEvent, IMessageParser, WebSocketEventEnum } from '@nitrots/api';
 import { GetConfiguration } from '@nitrots/configuration';
 import { GetEventDispatcher, NitroEvent, NitroEventType, ReconnectEvent } from '@nitrots/events';
 import { NitroLogger } from '@nitrots/utils';
@@ -509,7 +509,7 @@ export class SocketConnection implements IConnection
 
         try
         {
-            const parser = new events[0].parserClass();
+            const parser = new (events[0].parserClass as new () => IMessageParser)();
 
             if(!parser || !parser.flush() || !parser.parse(wrapper)) return null;
 

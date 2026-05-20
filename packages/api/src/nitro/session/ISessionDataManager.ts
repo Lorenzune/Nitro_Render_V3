@@ -3,6 +3,7 @@ import { IFurnitureData } from './IFurnitureData';
 import { IGroupInformationManager } from './IGroupInformationManager';
 import { IIgnoredUsersManager } from './IIgnoredUsersManager';
 import { IProductData } from './IProductData';
+import { IUserDataSnapshot } from './IUserDataSnapshot';
 
 export interface ISessionDataManager
 {
@@ -53,4 +54,12 @@ export interface ISessionDataManager
     isCameraFollowDisabled: boolean;
     uiFlags: number;
     tags: string[];
+    getUserDataSnapshot(): Readonly<IUserDataSnapshot>;
+    /**
+     * Referentially-stable view of the resolved permission map for
+     * the current user. Invalidated by `USER_PERMISSIONS_UPDATED`.
+     * Empty when the connected emulator doesn't ship the extended
+     * `UserPermissionsMapComposer` (Arcturus ≥ 4.2.10).
+     */
+    getPermissionsSnapshot(): ReadonlyMap<string, number>;
 }

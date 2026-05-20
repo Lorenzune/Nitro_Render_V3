@@ -1,7 +1,7 @@
 {
   "name": "@nitrots/nitro-renderer",
   "description": "Javascript library for rendering Nitro in the browser using PixiJS",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -22,6 +22,7 @@
   "scripts": {
     "build": "vite build",
     "compile": "tsc --project ./tsconfig.json --noEmit false",
+    "compile:fast": "tsgo --project ./tsconfig.json --noEmit",
     "eslint": "eslint ./src ./packages/*/src",
     "eslint-fix": "eslint ./src --fix",
     "test": "vitest run",
@@ -30,7 +31,7 @@
   },
   "main": "./index",
   "dependencies": {
-    "@thumbmarkjs/thumbmarkjs": "^1.8.1",
+    "@thumbmarkjs/thumbmarkjs": "^1.9.0",
     "gifuct-js": "^2.1.2",
     "howler": "^2.2.4",
     "json5": "^2.2.3",
@@ -47,8 +48,9 @@
     "@vitest/coverage-v8": "^4.0.18",
     "eslint": "^9.8.0",
     "jsdom": "^27.4.0",
+    "@typescript/native-preview": "^7.0.0-dev.20260510.1",
     "tslib": "^2.6.3",
-    "typescript": "~5.8.2",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.26.1",
     "vite": "^8.0.10",
     "vitest": "^4.1.5"
