@@ -4,4 +4,7 @@ export * from './HousekeepingFindUserByNameComposer';
 export * from './HousekeepingForceDisconnectUserComposer';
 export * from './HousekeepingKickUserComposer';
 export * from './HousekeepingMuteUserComposer';
+export * from './HousekeepingResetUserPasswordComposer';
+export * from './HousekeepingSetUserRankComposer';
+export * from './HousekeepingTradeLockUserComposer';
 export * from './HousekeepingUnbanUserComposer';

@@ -531,4 +531,7 @@ export class OutgoingHeader
     public static HOUSEKEEPING_MUTE_USER = 9104;
     public static HOUSEKEEPING_KICK_USER = 9105;
     public static HOUSEKEEPING_FORCE_DISCONNECT_USER = 9106;
+    public static HOUSEKEEPING_SET_USER_RANK = 9107;
+    public static HOUSEKEEPING_TRADE_LOCK_USER = 9108;
+    public static HOUSEKEEPING_RESET_USER_PASSWORD = 9109;
 }

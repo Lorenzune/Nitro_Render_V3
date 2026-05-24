@@ -7,7 +7,7 @@ import { ConfInvisStateMessageEvent } from './messages';
 import { HanditemBlockStateMessageEvent } from './messages';
 import { TranslationLanguagesEvent, TranslationLanguagesRequestComposer, TranslationResultEvent, TranslationTextRequestComposer } from './messages';
 import { YouTubeRoomBroadcastEvent, YouTubeRoomPlayComposer, YouTubeRoomSettingsComposer, YouTubeRoomSettingsEvent, YouTubeRoomWatchersEvent, YouTubeRoomWatchingComposer } from './messages';
-import { HousekeepingActionResultEvent, HousekeepingBanUserComposer, HousekeepingFindUserByIdComposer, HousekeepingFindUserByNameComposer, HousekeepingForceDisconnectUserComposer, HousekeepingKickUserComposer, HousekeepingMuteUserComposer, HousekeepingUnbanUserComposer, HousekeepingUserDetailEvent } from './messages';
+import { HousekeepingActionResultEvent, HousekeepingBanUserComposer, HousekeepingFindUserByIdComposer, HousekeepingFindUserByNameComposer, HousekeepingForceDisconnectUserComposer, HousekeepingKickUserComposer, HousekeepingMuteUserComposer, HousekeepingResetUserPasswordComposer, HousekeepingSetUserRankComposer, HousekeepingTradeLockUserComposer, HousekeepingUnbanUserComposer, HousekeepingUserDetailEvent } from './messages';
 export class NitroMessages implements IMessageConfiguration
 {
     private _events: Map<number, Function>;
@@ -1269,6 +1269,9 @@ export class NitroMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.HOUSEKEEPING_MUTE_USER, HousekeepingMuteUserComposer);
         this._composers.set(OutgoingHeader.HOUSEKEEPING_KICK_USER, HousekeepingKickUserComposer);
         this._composers.set(OutgoingHeader.HOUSEKEEPING_FORCE_DISCONNECT_USER, HousekeepingForceDisconnectUserComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_SET_USER_RANK, HousekeepingSetUserRankComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_TRADE_LOCK_USER, HousekeepingTradeLockUserComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_RESET_USER_PASSWORD, HousekeepingResetUserPasswordComposer);
     }
 
     public get events(): Map<number, Function>
