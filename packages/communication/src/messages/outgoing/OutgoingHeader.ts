@@ -534,4 +534,11 @@ export class OutgoingHeader
     public static HOUSEKEEPING_SET_USER_RANK = 9107;
     public static HOUSEKEEPING_TRADE_LOCK_USER = 9108;
     public static HOUSEKEEPING_RESET_USER_PASSWORD = 9109;
+    public static HOUSEKEEPING_FIND_ROOM_BY_ID = 9110;
+    public static HOUSEKEEPING_SEARCH_ROOMS = 9111;
+    public static HOUSEKEEPING_ROOM_STATE = 9112;
+    public static HOUSEKEEPING_MUTE_ROOM = 9113;
+    public static HOUSEKEEPING_KICK_ALL_FROM_ROOM = 9114;
+    public static HOUSEKEEPING_TRANSFER_ROOM_OWNERSHIP = 9115;
+    public static HOUSEKEEPING_DELETE_ROOM = 9116;
 }
