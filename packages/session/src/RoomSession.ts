@@ -97,9 +97,9 @@ export class RoomSession implements IRoomSession
         else GetCommunication().connection.send(new RoomUnitTypingStopComposer());
     }
 	
-	public sendBackgroundMessage(backgroundImage: number, backgroundStand: number, backgroundOverlay: number, backgroundCard: number = 0): void
+	public sendBackgroundMessage(backgroundImage: number, backgroundStand: number, backgroundOverlay: number, backgroundCard: number = 0, backgroundBorder: number = 0): void
     {
-        GetCommunication().connection.send(new RoomUnitBackgroundComposer(backgroundImage, backgroundStand, backgroundOverlay, backgroundCard));
+        GetCommunication().connection.send(new RoomUnitBackgroundComposer(backgroundImage, backgroundStand, backgroundOverlay, backgroundCard, backgroundBorder));
     }
 
     public sendMottoMessage(motto: string): void
@@ -137,11 +137,6 @@ export class RoomSession implements IRoomSession
     public sendAmbassadorAlertMessage(userId: number): void
     {
         GetCommunication().connection.send(new RoomAmbassadorAlertComposer(userId));
-    }
-	
-	public sendWhisperGroupMessage(userId: number): void
-    {
-        GetCommunication().connection.send(new ChatWhisperGroupComposer(userId));
     }
 
     public sendKickMessage(userId: number): void

@@ -7,4 +7,5 @@ export interface IEventDispatcher
     removeEventListener(type: string, callback: Function): void;
     removeAllListeners(): void;
     dispatchEvent<T extends INitroEvent>(event: T): boolean;
+    subscribe<T extends INitroEvent>(type: string | string[], callback: (event: T) => void): () => void;
 }

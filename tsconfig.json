@@ -1,17 +1,15 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./src",
     "outDir": "./dist",
     "sourceMap": false,
     "declaration": true,
     "experimentalDecorators": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "importHelpers": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "downlevelIteration": true,
     "allowSyntheticDefaultImports": true,
     "allowJs": true,
     "skipLibCheck": true,

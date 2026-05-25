@@ -32,7 +32,8 @@ implements
         chatBubbleWeight: number,
         chatBubbleSpeed: number,
         chatDistance: number,
-        chatFloodProtection: number
+        chatFloodProtection: number,
+        allowUnderpass?: boolean
     )
     {
         //@ts-ignore
@@ -67,6 +68,8 @@ implements
             chatDistance,
             chatFloodProtection
         );
+
+        if(allowUnderpass !== undefined) this._data.push(allowUnderpass);
     }
 
     public getMessageArray()

@@ -4,9 +4,9 @@ export class CatalogAdminSavePageComposer implements IMessageComposer<Constructo
 {
     private _data: ConstructorParameters<typeof CatalogAdminSavePageComposer>;
 
-    constructor(pageId: number, caption: string, caption2: string, layout: string, iconType: number, minRank: number, visible: boolean, enabled: boolean, orderNum: number, parentId: number, headline: string, teaser: string, textDetails: string, targetCatalogType: string, catalogMode: string = 'NORMAL')
+    constructor(pageId: number, caption: string, caption2: string, layout: string, iconType: number, minRank: number, visible: boolean, enabled: boolean, orderNum: number, parentId: number, headline: string, teaser: string, textDetails: string, targetCatalogType: string, catalogMode: string = 'NORMAL', pageText1: string = '')
     {
-        this._data = [ pageId, caption, caption2, layout, iconType, minRank, visible, enabled, orderNum, parentId, headline, teaser, textDetails, targetCatalogType, catalogMode ];
+        this._data = [ pageId, caption, caption2, layout, iconType, minRank, visible, enabled, orderNum, parentId, headline, teaser, textDetails, targetCatalogType, catalogMode, pageText1 ];
     }
 
     dispose(): void

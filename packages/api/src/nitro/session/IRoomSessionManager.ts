@@ -1,4 +1,5 @@
 import { IRoomSession } from './IRoomSession';
+import { IRoomSessionSnapshot } from './IRoomSessionSnapshot';
 
 export interface IRoomSessionManager
 {
@@ -8,5 +9,6 @@ export interface IRoomSessionManager
     startSession(session: IRoomSession): boolean;
     removeSession(id: number, openLandingView?: boolean): void;
     tryRestoreSession(): boolean;
+    getActiveRoomSessionSnapshot(): Readonly<IRoomSessionSnapshot> | null;
     viewerSession: IRoomSession;
 }

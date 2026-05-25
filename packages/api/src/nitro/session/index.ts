@@ -18,6 +18,8 @@ export * from './IRoomSessionManager';
 export * from './IRoomUserData';
 export * from './ISessionDataManager';
 export * from './IUserDataManager';
+export * from './IUserDataSnapshot';
+export * from './IRoomSessionSnapshot';
 export * from './PetBreedingResultData';
 export * from './PetCustomPart';
 export * from './PetFigureData';

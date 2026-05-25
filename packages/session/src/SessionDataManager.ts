@@ -1,8 +1,8 @@
-import { IFurnitureData, IGroupInformationManager, IMessageComposer, IMessageEvent, IProductData, ISessionDataManager, NoobnessLevelEnum, SecurityLevel } from '@nitrots/api';
+import { IFurnitureData, IGroupInformationManager, IMessageComposer, IMessageEvent, IProductData, ISessionDataManager, IUserDataSnapshot, NoobnessLevelEnum, SecurityLevel } from '@nitrots/api';
 import { AccountSafetyLockStatusChangeMessageEvent, AccountSafetyLockStatusChangeParser, AvailabilityStatusMessageEvent, ChangeUserNameResultMessageEvent, EmailStatusResultEvent, FigureUpdateEvent, GetCommunication, GetUserTagsComposer, InClientLinkEvent, MysteryBoxKeysEvent, NoobnessLevelMessageEvent, PetRespectComposer, PetScratchFailedMessageEvent, RoomReadyMessageEvent, RoomUnitChatComposer, UserInfoEvent, UserNameChangeMessageEvent, UserPermissionsEvent, UserRespectComposer, UserTagsMessageEvent } from '@nitrots/communication';
 import { GetConfiguration } from '@nitrots/configuration';
 import { GetLocalizationManager } from '@nitrots/localization';
-import { GetEventDispatcher, MysteryBoxKeysUpdateEvent, NitroSettingsEvent, SessionDataPreferencesEvent, UserNameUpdateEvent } from '@nitrots/events';
+import { GetEventDispatcher, MysteryBoxKeysUpdateEvent, NitroEvent, NitroEventType, NitroSettingsEvent, SessionDataPreferencesEvent, UserNameUpdateEvent } from '@nitrots/events';
 import { CreateLinkEvent, HabboWebTools, parseConfigJsonFromResponse } from '@nitrots/utils';
 import { Texture } from 'pixi.js';
 import { GroupInformationManager } from './GroupInformationManager';
@@ -32,6 +32,11 @@ export class SessionDataManager implements ISessionDataManager
     private _clubLevel: number = 0;
     private _securityLevel: number = 0;
     private _isAmbassador: boolean = false;
+    private _rankId: number = 0;
+    private _rankName: string = '';
+    private _rankBadge: string = '';
+    private _rankPrefix: string = '';
+    private _rankPrefixColor: string = '';
     private _noobnessLevel: number = -1;
     private _isEmailVerified: boolean = false;
 
@@ -52,9 +57,85 @@ export class SessionDataManager implements ISessionDataManager
 
     private _badgeImageManager: BadgeImageManager = new BadgeImageManager();
 
+    private _userDataSnapshot: Readonly<IUserDataSnapshot> | null = null;
+
+    private _permissions: Map<string, number> = new Map();
+    private _permissionsSnapshot: ReadonlyMap<string, number> | null = null;
+
     constructor()
     {
         this.resetUserInfo();
+    }
+
+    private invalidateUserDataSnapshot(): void
+    {
+        this._userDataSnapshot = null;
+
+        GetEventDispatcher().dispatchEvent(new NitroEvent(NitroEventType.SESSION_DATA_UPDATED));
+    }
+
+    private invalidatePermissionsSnapshot(): void
+    {
+        this._permissionsSnapshot = null;
+
+        GetEventDispatcher().dispatchEvent(new NitroEvent(NitroEventType.USER_PERMISSIONS_UPDATED));
+    }
+
+    /**
+     * Resolved permission map for the current user — mirror of
+     * `permission_definitions` for the user's rank, filtered to keys
+     * with `PermissionSetting != DISALLOWED`. Wire-fed by
+     * `UserPermissionsMapEvent` (Arcturus ≥ 4.2.10). Older emulators
+     * that don't ship the new packet leave the snapshot empty; React
+     * consumers via `useHasPermission(key)` then degrade gracefully
+     * (every gate returns false → mod UI hidden, which is the safe
+     * default).
+     *
+     * Referentially stable until the next
+     * `UserPermissionsMapEvent` arrives (e.g. after
+     * `HabboManager.setRank`).
+     */
+    public getPermissionsSnapshot(): ReadonlyMap<string, number>
+    {
+        if(this._permissionsSnapshot) return this._permissionsSnapshot;
+
+        this._permissionsSnapshot = new Map(this._permissions) as ReadonlyMap<string, number>;
+
+        return this._permissionsSnapshot;
+    }
+
+    public getUserDataSnapshot(): Readonly<IUserDataSnapshot>
+    {
+        if(this._userDataSnapshot) return this._userDataSnapshot;
+
+        this._userDataSnapshot = Object.freeze<IUserDataSnapshot>({
+            userId: this._userId,
+            userName: this._name,
+            figure: this._figure,
+            gender: this._gender,
+            realName: this._realName,
+            respectsReceived: this._respectsReceived,
+            respectsLeft: this._respectsLeft,
+            respectsPetLeft: this._respectsPetLeft,
+            canChangeName: this._canChangeName,
+            clubLevel: this._clubLevel,
+            securityLevel: this._securityLevel,
+            isAmbassador: this._isAmbassador,
+            isEmailVerified: this._isEmailVerified,
+            isNoob: (this._noobnessLevel !== NoobnessLevelEnum.OLD_IDENTITY),
+            isAuthenticHabbo: this._isAuthenticHabbo,
+            isSystemOpen: this._systemOpen,
+            isSystemShutdown: this._systemShutdown,
+            uiFlags: this._uiFlags,
+            tags: Object.freeze<string[]>([...this._tags]) as ReadonlyArray<string>,
+            rankId: this._rankId,
+            rankName: this._rankName,
+            rankBadge: this._rankBadge,
+            rankPrefix: this._rankPrefix,
+            rankPrefixColor: this._rankPrefixColor
+        });
+
+        return this._userDataSnapshot;
     }
 
     public async init(): Promise<void>
@@ -75,6 +156,8 @@ export class SessionDataManager implements ISessionDataManager
                 this._gender = event.getParser().gender;
 
                 HabboWebTools.updateFigure(this._figure);
+
+                this.invalidateUserDataSnapshot();
             })),
             GetCommunication().registerMessageEvent(new UserInfoEvent(this.onUserInfoEvent.bind(this))),
             GetCommunication().registerMessageEvent(new UserPermissionsEvent(this.onUserPermissionsEvent.bind(this))),
@@ -98,6 +181,8 @@ export class SessionDataManager implements ISessionDataManager
             this._uiFlags = event.flags;
 
             GetEventDispatcher().dispatchEvent(new SessionDataPreferencesEvent(this._uiFlags));
+
+            this.invalidateUserDataSnapshot();
         };
 
         GetEventDispatcher().addEventListener<NitroSettingsEvent>(NitroSettingsEvent.SETTINGS_UPDATED, this._settingsEventCallback);
@@ -189,15 +274,38 @@ export class SessionDataManager implements ISessionDataManager
         this._safetyLocked = userInfo.safetyLocked;
 
         this._ignoredUsersManager.requestIgnoredUsers(userInfo.username);
+
+        this.invalidateUserDataSnapshot();
     }
 
     private onUserPermissionsEvent(event: UserPermissionsEvent): void
     {
         if(!event || !event.connection) return;
 
-        this._clubLevel = event.getParser().clubLevel;
-        this._securityLevel = event.getParser().securityLevel;
-        this._isAmbassador = event.getParser().isAmbassador;
+        const parser = event.getParser();
+
+        this._clubLevel = parser.clubLevel;
+        this._securityLevel = parser.securityLevel;
+        this._isAmbassador = parser.isAmbassador;
+        this._rankId = parser.rankId;
+        this._rankName = parser.rankName;
+        this._rankBadge = parser.rankBadge;
+        this._rankPrefix = parser.rankPrefix;
+        this._rankPrefixColor = parser.rankPrefixColor;
+        // Copy into our local mutable Map so the parser's reference
+        // (which is overwritten on every parse() call) can't leak back
+        // to consumers.
+        this._permissions = new Map(parser.permissions);
+
+        // Invalidate BOTH snapshots: a UserPermissionsComposer push from
+        // the emulator refreshes user-data fields (clubLevel/securityLevel
+        // /rank metadata) AND the resolved permission map. Keep the two
+        // invalidation events distinct so React consumers can subscribe
+        // to just one (e.g. a widget that only cares about
+        // useHasPermission re-renders only when the map actually
+        // changes, not on every snapshot bump).
+        this.invalidateUserDataSnapshot();
+        this.invalidatePermissionsSnapshot();
     }
 
     private onAvailabilityStatusMessageEvent(event: AvailabilityStatusMessageEvent): void
@@ -211,6 +319,8 @@ export class SessionDataManager implements ISessionDataManager
         this._systemOpen = parser.isOpen;
         this._systemShutdown = parser.onShutdown;
         this._isAuthenticHabbo = parser.isAuthenticUser;
+
+        this.invalidateUserDataSnapshot();
     }
 
     private onPetRespectFailed(event: PetScratchFailedMessageEvent): void
@@ -218,6 +328,8 @@ export class SessionDataManager implements ISessionDataManager
         if(!event || !event.connection) return;
 
         this._respectsPetLeft++;
+
+        this.invalidateUserDataSnapshot();
     }
 
     private onChangeNameUpdateEvent(event: ChangeUserNameResultMessageEvent): void
@@ -233,6 +345,8 @@ export class SessionDataManager implements ISessionDataManager
         this._canChangeName = false;
 
         GetEventDispatcher().dispatchEvent(new UserNameUpdateEvent(parser.name));
+
+        this.invalidateUserDataSnapshot();
     }
 
     private onUserNameChangeMessageEvent(event: UserNameChangeMessageEvent): void
@@ -249,6 +363,8 @@ export class SessionDataManager implements ISessionDataManager
         this._canChangeName = false;
 
         GetEventDispatcher().dispatchEvent(new UserNameUpdateEvent(this._name));
+
+        this.invalidateUserDataSnapshot();
     }
 
     private onUserTags(event: UserTagsMessageEvent): void
@@ -260,6 +376,8 @@ export class SessionDataManager implements ISessionDataManager
         if(!parser) return;
 
         this._tags = parser.tags;
+
+        this.invalidateUserDataSnapshot();
     }
 
     private onRoomModelNameEvent(event: RoomReadyMessageEvent): void
@@ -300,6 +418,8 @@ export class SessionDataManager implements ISessionDataManager
         this._noobnessLevel = event.getParser().noobnessLevel;
 
         if(this._noobnessLevel !== NoobnessLevelEnum.OLD_IDENTITY) GetConfiguration().setValue<number>('new.identity', 1);
+
+        this.invalidateUserDataSnapshot();
     }
 
     private onAccountSafetyLockStatusChangeMessageEvent(event: AccountSafetyLockStatusChangeMessageEvent): void
@@ -316,6 +436,8 @@ export class SessionDataManager implements ISessionDataManager
     private onEmailStatus(event: EmailStatusResultEvent): void
     {
         this._isEmailVerified = event?.getParser()?.isVerified ?? false;
+
+        this.invalidateUserDataSnapshot();
     }
 
     public getFloorItemData(id: number): IFurnitureData
@@ -476,6 +598,8 @@ export class SessionDataManager implements ISessionDataManager
         this.send(new UserRespectComposer(userId));
 
         this._respectsLeft--;
+
+        this.invalidateUserDataSnapshot();
     }
 
     public givePetRespect(petId: number): void
@@ -485,6 +609,8 @@ export class SessionDataManager implements ISessionDataManager
         this.send(new PetRespectComposer(petId));
 
         this._respectsPetLeft--;
+
+        this.invalidateUserDataSnapshot();
     }
 
     public sendSpecialCommandMessage(text: string, styleId: number = 0): void

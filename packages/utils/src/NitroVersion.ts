@@ -1,7 +1,7 @@
 export class NitroVersion
 {
-    public static RENDERER_VERSION: string = '3.0.0';
-	public static UI_VERSION: string = '3.0.4';
+    public static RENDERER_VERSION: string = '3.5.0';
+	public static UI_VERSION: string = '3.5.0';
 
     public static sayHello(): void
     {

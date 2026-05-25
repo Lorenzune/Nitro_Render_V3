@@ -37,6 +37,7 @@ export class RoomSettingsData
     private _roomModerationSettings: RoomModerationSettings = null;
     private _chatSettings: RoomChatSettings = null;
     private _allowNavigatorDynamicCats: boolean = false;
+    private _allowUnderpass: boolean = false;
 
     public static from(settings: RoomSettingsData)
     {
@@ -65,6 +66,7 @@ export class RoomSettingsData
         instance._roomModerationSettings = settings._roomModerationSettings;
         instance._chatSettings = settings._chatSettings;
         instance._allowNavigatorDynamicCats = settings._allowNavigatorDynamicCats;
+        instance._allowUnderpass = settings._allowUnderpass;
 
         return instance;
     }
@@ -328,5 +330,15 @@ export class RoomSettingsData
     public set allowNavigatorDynamicCats(flag: boolean)
     {
         this._allowNavigatorDynamicCats = flag;
+    }
+
+    public get allowUnderpass(): boolean
+    {
+        return this._allowUnderpass;
+    }
+
+    public set allowUnderpass(flag: boolean)
+    {
+        this._allowUnderpass = flag;
     }
 }

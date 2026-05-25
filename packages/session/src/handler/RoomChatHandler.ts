@@ -168,6 +168,6 @@ export class RoomChatHandler extends BaseHandler
 
         if(!parser) return;
 
-        GetEventDispatcher().dispatchEvent(new RoomSessionChatEvent(RoomSessionChatEvent.CHAT_EVENT, session, session.ownRoomIndex, '', RoomSessionChatEvent.CHAT_TYPE_MUTE_REMAINING, SystemChatStyleEnum.GENERIC, [], null, parser.seconds));
+        GetEventDispatcher().dispatchEvent(new RoomSessionChatEvent(RoomSessionChatEvent.CHAT_EVENT, session, session.ownRoomIndex, '', RoomSessionChatEvent.CHAT_TYPE_MUTE_REMAINING, SystemChatStyleEnum.GENERIC, '', [], parser.seconds));
     }
 }

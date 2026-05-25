@@ -49,6 +49,10 @@ export class RoomSettingsDataParser implements IMessageParser
         this._roomSettingsData.allowNavigatorDynamicCats = wrapper.readBoolean();
         this._roomSettingsData.roomModerationSettings = new RoomModerationSettings(wrapper);
 
+        // Custom Arcturus extension: trailing int (0/1) for the underpass toggle.
+        // Older servers may not emit it; default stays false when absent.
+        if(wrapper.bytesAvailable) this._roomSettingsData.allowUnderpass = (wrapper.readInt() === 1);
+
         return true;
     }
 

@@ -101,4 +101,23 @@ export class EventDispatcher implements IEventDispatcher
     {
         this._listeners.clear();
     }
+
+    public subscribe<T extends INitroEvent>(type: string | string[], callback: (event: T) => void): () => void
+    {
+        if(!type || !callback) return () => {};
+
+        if(Array.isArray(type))
+        {
+            for(const t of type) this.addEventListener<T>(t, callback);
+
+            return () =>
+            {
+                for(const t of type) this.removeEventListener(t, callback);
+            };
+        }
+
+        this.addEventListener<T>(type, callback);
+
+        return () => this.removeEventListener(type, callback);
+    }
 }
