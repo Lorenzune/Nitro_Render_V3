@@ -7,6 +7,7 @@ import { ConfInvisStateMessageEvent } from './messages';
 import { HanditemBlockStateMessageEvent } from './messages';
 import { TranslationLanguagesEvent, TranslationLanguagesRequestComposer, TranslationResultEvent, TranslationTextRequestComposer } from './messages';
 import { YouTubeRoomBroadcastEvent, YouTubeRoomPlayComposer, YouTubeRoomSettingsComposer, YouTubeRoomSettingsEvent, YouTubeRoomWatchersEvent, YouTubeRoomWatchingComposer } from './messages';
+import { HousekeepingActionLogEvent, HousekeepingActionResultEvent, HousekeepingBanUserComposer, HousekeepingDashboardEvent, HousekeepingDeleteRoomComposer, HousekeepingFindRoomByIdComposer, HousekeepingFindUserByIdComposer, HousekeepingFindUserByNameComposer, HousekeepingForceDisconnectUserComposer, HousekeepingGetDashboardComposer, HousekeepingGiveCreditsComposer, HousekeepingGiveCurrencyComposer, HousekeepingGrantItemComposer, HousekeepingKickAllFromRoomComposer, HousekeepingKickUserComposer, HousekeepingListActionLogComposer, HousekeepingMuteRoomComposer, HousekeepingMuteUserComposer, HousekeepingResetUserPasswordComposer, HousekeepingRoomDetailEvent, HousekeepingRoomListEvent, HousekeepingRoomStateComposer, HousekeepingSearchRoomsComposer, HousekeepingSendHotelAlertComposer, HousekeepingSetHcSubscriptionComposer, HousekeepingSetUserRankComposer, HousekeepingTradeLockUserComposer, HousekeepingTransferRoomOwnershipComposer, HousekeepingUnbanUserComposer, HousekeepingUserDetailEvent } from './messages';
 export class NitroMessages implements IMessageConfiguration
 {
     private _events: Map<number, Function>;
@@ -505,6 +506,14 @@ export class NitroMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.YOUTUBE_ROOM_BROADCAST, YouTubeRoomBroadcastEvent);
         this._events.set(IncomingHeader.YOUTUBE_ROOM_SETTINGS, YouTubeRoomSettingsEvent);
         this._events.set(IncomingHeader.YOUTUBE_ROOM_WATCHERS, YouTubeRoomWatchersEvent);
+
+        // Housekeeping (in-client admin panel)
+        this._events.set(IncomingHeader.HOUSEKEEPING_USER_DETAIL, HousekeepingUserDetailEvent);
+        this._events.set(IncomingHeader.HOUSEKEEPING_ACTION_RESULT, HousekeepingActionResultEvent);
+        this._events.set(IncomingHeader.HOUSEKEEPING_ROOM_DETAIL, HousekeepingRoomDetailEvent);
+        this._events.set(IncomingHeader.HOUSEKEEPING_ROOM_LIST, HousekeepingRoomListEvent);
+        this._events.set(IncomingHeader.HOUSEKEEPING_DASHBOARD, HousekeepingDashboardEvent);
+        this._events.set(IncomingHeader.HOUSEKEEPING_ACTION_LOG, HousekeepingActionLogEvent);
         this._events.set(IncomingHeader.WIRED_REWARD, WiredRewardResultMessageEvent);
         this._events.set(IncomingHeader.WIRED_SAVE, WiredSaveSuccessEvent);
         this._events.set(IncomingHeader.WIRED_ERROR, WiredValidationErrorEvent);
@@ -1255,6 +1264,32 @@ export class NitroMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.YOUTUBE_ROOM_PLAY, YouTubeRoomPlayComposer);
         this._composers.set(OutgoingHeader.YOUTUBE_ROOM_SETTINGS, YouTubeRoomSettingsComposer);
         this._composers.set(OutgoingHeader.YOUTUBE_ROOM_WATCHING, YouTubeRoomWatchingComposer);
+
+        // Housekeeping (in-client admin panel)
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_FIND_USER_BY_NAME, HousekeepingFindUserByNameComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_FIND_USER_BY_ID, HousekeepingFindUserByIdComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_BAN_USER, HousekeepingBanUserComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_UNBAN_USER, HousekeepingUnbanUserComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_MUTE_USER, HousekeepingMuteUserComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_KICK_USER, HousekeepingKickUserComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_FORCE_DISCONNECT_USER, HousekeepingForceDisconnectUserComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_SET_USER_RANK, HousekeepingSetUserRankComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_TRADE_LOCK_USER, HousekeepingTradeLockUserComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_RESET_USER_PASSWORD, HousekeepingResetUserPasswordComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_FIND_ROOM_BY_ID, HousekeepingFindRoomByIdComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_SEARCH_ROOMS, HousekeepingSearchRoomsComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_ROOM_STATE, HousekeepingRoomStateComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_MUTE_ROOM, HousekeepingMuteRoomComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_KICK_ALL_FROM_ROOM, HousekeepingKickAllFromRoomComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_TRANSFER_ROOM_OWNERSHIP, HousekeepingTransferRoomOwnershipComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_DELETE_ROOM, HousekeepingDeleteRoomComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_GIVE_CREDITS, HousekeepingGiveCreditsComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_GIVE_CURRENCY, HousekeepingGiveCurrencyComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_GRANT_ITEM, HousekeepingGrantItemComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_SET_HC_SUBSCRIPTION, HousekeepingSetHcSubscriptionComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_SEND_HOTEL_ALERT, HousekeepingSendHotelAlertComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_GET_DASHBOARD, HousekeepingGetDashboardComposer);
+        this._composers.set(OutgoingHeader.HOUSEKEEPING_LIST_ACTION_LOG, HousekeepingListActionLogComposer);
     }
 
     public get events(): Map<number, Function>

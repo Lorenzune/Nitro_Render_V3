@@ -522,4 +522,30 @@ export class OutgoingHeader
     public static YOUTUBE_ROOM_PLAY = 8001;
     public static YOUTUBE_ROOM_WATCHING = 8002;
     public static YOUTUBE_ROOM_SETTINGS = 8003;
+
+    // Housekeeping (in-client admin panel) — IDs 9100..9199 reserved
+    public static HOUSEKEEPING_FIND_USER_BY_NAME = 9100;
+    public static HOUSEKEEPING_FIND_USER_BY_ID = 9101;
+    public static HOUSEKEEPING_BAN_USER = 9102;
+    public static HOUSEKEEPING_UNBAN_USER = 9103;
+    public static HOUSEKEEPING_MUTE_USER = 9104;
+    public static HOUSEKEEPING_KICK_USER = 9105;
+    public static HOUSEKEEPING_FORCE_DISCONNECT_USER = 9106;
+    public static HOUSEKEEPING_SET_USER_RANK = 9107;
+    public static HOUSEKEEPING_TRADE_LOCK_USER = 9108;
+    public static HOUSEKEEPING_RESET_USER_PASSWORD = 9109;
+    public static HOUSEKEEPING_FIND_ROOM_BY_ID = 9110;
+    public static HOUSEKEEPING_SEARCH_ROOMS = 9111;
+    public static HOUSEKEEPING_ROOM_STATE = 9112;
+    public static HOUSEKEEPING_MUTE_ROOM = 9113;
+    public static HOUSEKEEPING_KICK_ALL_FROM_ROOM = 9114;
+    public static HOUSEKEEPING_TRANSFER_ROOM_OWNERSHIP = 9115;
+    public static HOUSEKEEPING_DELETE_ROOM = 9116;
+    public static HOUSEKEEPING_GIVE_CREDITS = 9117;
+    public static HOUSEKEEPING_GIVE_CURRENCY = 9118;
+    public static HOUSEKEEPING_GRANT_ITEM = 9119;
+    public static HOUSEKEEPING_SET_HC_SUBSCRIPTION = 9120;
+    public static HOUSEKEEPING_SEND_HOTEL_ALERT = 9121;
+    public static HOUSEKEEPING_GET_DASHBOARD = 9122;
+    public static HOUSEKEEPING_LIST_ACTION_LOG = 9123;
 }
