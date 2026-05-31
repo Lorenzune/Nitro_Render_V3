@@ -76,6 +76,12 @@ export class FurnitureRoomBackgroundVisualization extends FurnitureBrandedImageV
 
         if(this.getLayerTag(scale, direction, layerId) === FurnitureBrandedImageVisualization.BRANDED_IMAGE)
         {
+            // The parent (FurnitureBrandedImageVisualization) now ADDS offsetZ to the
+            // branded layer as a z-index (for the MPU/billboard editor). The room
+            // background instead uses offsetZ as an INVERSE depth push — the classic
+            // "play with Z to make the floor/walls go transparent" trick — so cancel
+            // the parent's +offsetZ to restore the original net (base - offsetZ).
+            zOffset += (-(this._offsetZ));
             zOffset += FurnitureRoomBackgroundVisualization.BRANDED_IMAGE_LAYER_DEPTH_BIAS;
         }
 

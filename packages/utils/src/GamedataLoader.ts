@@ -1,4 +1,4 @@
-import { ConfigJsonError, fetchConfigJson, isMissingResource } from './JsonParser';
+import { ConfigJsonError, fetchConfigJson, isMissingResource, resolveJsonMode } from './JsonParser';
 import { NitroLogger } from './NitroLogger';
 
 export const DEFAULT_TIERS = [ 'core', 'custom', 'seasonal' ] as const;
@@ -45,10 +45,20 @@ const tryFetchManifest = async <T = any>(url: string): Promise<T | null> =>
     }
 };
 
-// Try .json5 first, then .json — both treated as optional. Anything other
-// than 404 on either bubbles up.
+// Pick the manifest extension from the active JSON mode instead of always
+// probing both — that just doubles the failed requests on startup.
+//   json5  -> only <name>.json5
+//   legacy -> only <name>.json
+//   auto   -> try .json5 first, fall back to .json
+// All treated as optional (a clean 404 -> null); anything else bubbles up.
 const tryFetchManifestPair = async <T = any>(baseUrl: string, name: string): Promise<T | null> =>
 {
+    const mode = resolveJsonMode();
+
+    if(mode === 'json5') return tryFetchManifest<T>(joinUrl(baseUrl, `${ name }.json5`));
+
+    if(mode === 'legacy') return tryFetchManifest<T>(joinUrl(baseUrl, `${ name }.json`));
+
     const json5 = await tryFetchManifest<T>(joinUrl(baseUrl, `${ name }.json5`));
     if(json5 !== null) return json5;
 

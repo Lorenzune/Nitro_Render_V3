@@ -27,7 +27,7 @@ export class ConfigJsonError extends Error
 export const isMissingResource = (err: unknown): boolean =>
     err instanceof ConfigJsonError && err.phase === 'fetch' && err.httpStatus === 404;
 
-const resolveJsonMode = (): 'legacy' | 'json5' | 'auto' =>
+export const resolveJsonMode = (): 'legacy' | 'json5' | 'auto' =>
 {
     try
     {
