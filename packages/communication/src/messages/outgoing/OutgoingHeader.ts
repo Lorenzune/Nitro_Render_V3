@@ -6,6 +6,7 @@ export class OutgoingHeader
     // MENTIONS
     public static REQUEST_MENTIONS = 4803;
     public static MARK_MENTIONS_READ = 4804;
+    public static DELETE_MENTION = 4805;
 
     public static ACHIEVEMENT_LIST = 219;
     public static AUTHENTICATION = -1;
