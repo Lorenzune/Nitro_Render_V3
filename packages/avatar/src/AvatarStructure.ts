@@ -369,6 +369,10 @@ export class AvatarStructure
         const mainAction = avatar?.getMainAction?.();
         const isSittingPosture = (mainAction?.definition?.assetPartDefinition === 'sit')
             || (action.definition.assetPartDefinition === 'sit');
+        // Effect 77 = "Riding". While in the saddle the companion/buddy ('pt') part
+        // is hidden the same way it is while sitting.
+        const isRidingPosture = (avatar?.getEffectId?.() === 77);
+        const hidePetPart = isSittingPosture || isRidingPosture;
 
         for(const figurePartType of figurePartTypeIds)
         {
@@ -426,7 +430,7 @@ export class AvatarStructure
 
                         for(const figurePart of figurePartSet.parts)
                         {
-                            if(isSittingPosture && figurePartType === 'pt')
+                            if(hidePetPart && figurePartType === 'pt')
                             {
                                 if(petHasVisibleSit && figurePart.type !== 'pt') continue;
                                 if(!petHasVisibleSit) continue;

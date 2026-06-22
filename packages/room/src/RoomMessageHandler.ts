@@ -1483,6 +1483,8 @@ export class RoomMessageHandler
             let parameter = '';
             let moveUpdate = false;
             let swimUpdate = false;
+            let jumpPosture = null;
+            let jumpParameter = '';
 
             if(status.actions && status.actions.length)
             {
@@ -1519,6 +1521,19 @@ export class RoomMessageHandler
                             parameter = action.value;
                             break;
                         case 'trd': break;
+                        case 'jmp':
+                        case 'jmp-in':
+                        case 'jmp-out':
+                            // A jumping horse is also moving, and the status order is not guaranteed
+                            // (it comes from a ConcurrentHashMap server-side). Remember the jump and
+                            // force it after the loop so the jump pose wins over 'mv' - otherwise the
+                            // horse just slides across and only shows the jump once it stops.
+                            jumpPosture = action.action;
+                            jumpParameter = action.value;
+                            postureUpdate = true;
+                            postureType = action.action;
+                            parameter = action.value;
+                            break;
                         default:
                             postureUpdate = true;
                             postureType = action.action;
@@ -1532,6 +1547,13 @@ export class RoomMessageHandler
             {
                 postureUpdate = true;
                 postureType = 'float';
+            }
+
+            if(jumpPosture !== null)
+            {
+                postureUpdate = true;
+                postureType = jumpPosture;
+                parameter = jumpParameter;
             }
 
             if(postureUpdate) this._roomEngine.updateRoomObjectUserPosture(this._currentRoomId, status.id, postureType, parameter);

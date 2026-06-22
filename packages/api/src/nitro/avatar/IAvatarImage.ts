@@ -21,6 +21,7 @@ export interface IAvatarImage
     getFigure(): IAvatarFigureContainer;
     getPartColor(_arg_1: string): IPartColor;
     getMainAction(): IActiveActionData;
+    getEffectId(): number;
     isAnimating(): boolean;
     getCanvasOffsets(): number[];
     initActionAppends(): void;

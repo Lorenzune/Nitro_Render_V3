@@ -163,6 +163,11 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         return this._mainAction;
     }
 
+    public getEffectId(): number
+    {
+        return this._effectIdInUse;
+    }
+
     public getLayerData(k: ISpriteDataContainer): IAnimationLayerData
     {
         return this._structure.getBodyPartData(k.animation.id, this._frameCounter, k.id);
