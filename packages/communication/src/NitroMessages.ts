@@ -3,7 +3,6 @@ import { UserSettingsPrivacyComposer } from './messages/outgoing/user/settings/U
 import { RequestOfflineMessagesComposer } from './messages/outgoing/friendlist/RequestOfflineMessagesComposer';
 import { HotelViewLandingEvent, HotelViewLandingRequestComposer, HotelViewLandingSaveComposer, HotelViewLandingSaveSceneComposer, HotelViewLandingVoteComposer, HotelViewLandingResetVotesComposer } from './messages';
 import { RoomUnitHabbiconEvent, UseHabbiconComposer } from './messages';
-import { WiredFurniGravityMessageEvent, WiredFurniOpacityMessageEvent } from './messages';
 import { MarkMessengerReadComposer, MessengerConversationsEvent, MessengerHistoryEvent, MessengerMessageAckEvent, MessengerMessageFailedEvent, MessengerMessageEvent, MessengerReadCursorEvent, RequestMessengerConversationsComposer, RequestMessengerHistoryComposer, SendMessengerMessageComposer } from './messages';
 import { GetTraxEditorSongsComposer, TraxEditorBuySongComposer, TraxEditorDeleteSongComposer, TraxEditorErrorEvent, TraxEditorSaveSongComposer, TraxEditorSongsEvent } from './messages';
 import { DeleteNickIconComposer } from './messages';
@@ -203,6 +202,7 @@ export class NitroMessages implements IMessageConfiguration
         this._events.set(IncomingHeader.SNOWWAR_QUEUE_POSITION, SnowWarQueuePositionEvent);
         this._events.set(IncomingHeader.SNOWWAR_START_LOBBY_COUNTER, SnowWarStartLobbyCounterEvent);
         this._events.set(IncomingHeader.SNOWWAR_GAME_ENDED, SnowWarGameEndedEvent);
+        this._events.set(IncomingHeader.SNOWWAR_LOBBY_TEAMS, SnowWarLobbyTeamsEvent);
         this._events.set(IncomingHeader.SNOWWAR_GAMES_LEFT, SnowWarGamesLeftEvent);
         this._events.set(IncomingHeader.SNOWWAR_GAMES_INFORMATION, SnowWarGamesInformationEvent);
         this._events.set(IncomingHeader.SNOWWAR_GAME_STATUS, SnowWarGameStatusEvent);
@@ -680,8 +680,6 @@ export class NitroMessages implements IMessageConfiguration
 
         // Custom packets
         this._events.set(IncomingHeader.AREA_HIDE, AreaHideMessageEvent);
-        this._events.set(IncomingHeader.WIRED_FURNI_OPACITY, WiredFurniOpacityMessageEvent);
-        this._events.set(IncomingHeader.WIRED_FURNI_GRAVITY, WiredFurniGravityMessageEvent);
         this._events.set(IncomingHeader.UNIT_HABBICON, RoomUnitHabbiconEvent);
         this._events.set(IncomingHeader.HOTEL_VIEW_LANDING, HotelViewLandingEvent);
 
@@ -869,6 +867,7 @@ export class NitroMessages implements IMessageConfiguration
         this._composers.set(OutgoingHeader.SNOWWAR_LEAVE_QUEUE, SnowWarLeaveQueueComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_EDIT_ROOM, SnowWarEditRoomComposer);
         this._composers.set(OutgoingHeader.SNOWWAR_SAVE_EDITOR, SnowWarSaveEditorComposer);
+        this._composers.set(OutgoingHeader.SNOWWAR_EXIT_EDITOR, SnowWarExitEditorComposer);
         this._composers.set(OutgoingHeader.USE_HABBICON, UseHabbiconComposer);
         this._composers.set(OutgoingHeader.USER_SETTINGS_PRIVACY, UserSettingsPrivacyComposer);
         this._composers.set(OutgoingHeader.REQUEST_OFFLINE_MESSAGES, RequestOfflineMessagesComposer);
