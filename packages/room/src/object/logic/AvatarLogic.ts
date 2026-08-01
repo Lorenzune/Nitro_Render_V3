@@ -56,7 +56,7 @@ export class AvatarLogic extends MovingObjectLogic
 
     public getEventTypes(): string[]
     {
-        const types = [RoomObjectMouseEvent.CLICK, RoomObjectMouseEvent.DOUBLE_CLICK, RoomObjectMoveEvent.POSITION_CHANGED, RoomObjectMouseEvent.MOUSE_ENTER, RoomObjectMouseEvent.MOUSE_LEAVE, RoomObjectFurnitureActionEvent.MOUSE_BUTTON, RoomObjectFurnitureActionEvent.MOUSE_ARROW];
+        const types = [RoomObjectMouseEvent.CLICK, RoomObjectMouseEvent.DOUBLE_CLICK, RoomObjectMoveEvent.POSITION_CHANGED, RoomObjectMouseEvent.MOUSE_DOWN, RoomObjectMouseEvent.MOUSE_ENTER, RoomObjectMouseEvent.MOUSE_LEAVE, RoomObjectFurnitureActionEvent.MOUSE_BUTTON, RoomObjectFurnitureActionEvent.MOUSE_ARROW];
 
         return this.mergeTypes(super.getEventTypes(), types);
     }
@@ -473,6 +473,9 @@ export class AvatarLogic extends MovingObjectLogic
                 break;
             case MouseEventType.DOUBLE_CLICK:
                 eventType = RoomObjectMouseEvent.DOUBLE_CLICK;
+                break;
+            case MouseEventType.MOUSE_DOWN:
+                eventType = RoomObjectMouseEvent.MOUSE_DOWN;
                 break;
             case MouseEventType.ROLL_OVER:
                 eventType = RoomObjectMouseEvent.MOUSE_ENTER;

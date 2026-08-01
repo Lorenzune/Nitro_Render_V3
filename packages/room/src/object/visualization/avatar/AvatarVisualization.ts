@@ -67,6 +67,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
     private _useObject: number;
     private _ownUser: boolean;
     private _habbiconTriggerSequence: number;
+    private _alphaMultiplier: number;
 
     private _isLaying: boolean;
     private _layInside: boolean;
@@ -126,6 +127,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         this._useObject = 0;
         this._ownUser = false;
         this._habbiconTriggerSequence = 0;
+        this._alphaMultiplier = 1;
 
         this._isLaying = false;
         this._layInside = false;
@@ -235,12 +237,12 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
                 if((sprite && this._avatarImage) && this._avatarImage.isPlaceholder())
                 {
-                    sprite.alpha = 150;
+                    sprite.alpha = (150 * this._alphaMultiplier);
                 }
 
                 else if(sprite)
                 {
-                    sprite.alpha = 255;
+                    sprite.alpha = (255 * this._alphaMultiplier);
                 }
             }
 
@@ -497,6 +499,8 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                     spriteIndex++;
                 }
             }
+
+            this.applyAlphaMultiplier();
 
             const avatarSprite = this.getSprite(AvatarVisualization.SPRITE_INDEX_AVATAR);
 
@@ -956,6 +960,18 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
             needsUpdate = true;
         }
 
+        let alphaMultiplier = model.getValue<number>(RoomObjectVariable.FURNITURE_ALPHA_MULTIPLIER);
+
+        if(isNaN(alphaMultiplier)) alphaMultiplier = 1;
+
+        if(alphaMultiplier !== this._alphaMultiplier)
+        {
+            this._alphaMultiplier = alphaMultiplier;
+            this.applyAlphaMultiplier();
+
+            needsUpdate = true;
+        }
+
         this.updateModelCounter = model.updateCounter;
 
         return needsUpdate;
@@ -1183,7 +1199,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
         if(sprite)
         {
             sprite.texture = Texture.EMPTY;
-            sprite.alpha = 255;
+            sprite.alpha = (255 * this._alphaMultiplier);
         }
 
 
@@ -1286,7 +1302,7 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
                     sprite.texture = this._shadow.texture;
                     sprite.offsetX = offsetX;
                     sprite.offsetY = offsetY;
-                    sprite.alpha = 50;
+                    sprite.alpha = (50 * this._alphaMultiplier);
                     sprite.relativeDepth = 1;
                 }
                 else
@@ -1301,6 +1317,17 @@ export class AvatarVisualization extends RoomObjectSpriteVisualization implement
 
             sprite.visible = false;
         }
+    }
+
+    private applyAlphaMultiplier(): void
+    {
+        const avatarSprite = this.getSprite(AvatarVisualization.AVATAR_LAYER_ID);
+
+        if(avatarSprite) avatarSprite.alpha = ((this._avatarImage && this._avatarImage.isPlaceholder()) ? 150 : 255) * this._alphaMultiplier;
+
+        const shadowSprite = this.getSprite(AvatarVisualization.SHADOW_LAYER_ID);
+
+        if(shadowSprite) shadowSprite.alpha = (50 * this._alphaMultiplier);
     }
 
     public get direction(): number
