@@ -1,7 +1,9 @@
 import { BrowserAdapter, DOMAdapter, HelloSystem, TextureSource } from 'pixi.js';
 
 HelloSystem.defaultOptions.hello = true;
-TextureSource.defaultOptions.scaleMode = (!(window.devicePixelRatio % 1)) ? 'nearest' : 'linear';
+const usePixelPerfectTextures = !(window.devicePixelRatio % 1) || (window.matchMedia('(pointer: coarse)').matches && navigator.maxTouchPoints > 0);
+
+TextureSource.defaultOptions.scaleMode = usePixelPerfectTextures ? 'nearest' : 'linear';
 DOMAdapter.set(BrowserAdapter);
 
 export * from '@nitrots/api';

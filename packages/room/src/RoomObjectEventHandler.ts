@@ -1,5 +1,5 @@
 import { IFurnitureStackingHeightMap, ILegacyWallGeometry, IObjectData, IRoomCanvasMouseListener, IRoomEngineServices, IRoomGeometry, IRoomObject, IRoomObjectController, IRoomObjectEventManager, ISelectedRoomObjectData, IVector3D, MouseEventType, RoomObjectCategory, RoomObjectOperationType, RoomObjectPlacementSource, RoomObjectType, RoomObjectUserType, RoomObjectVariable } from '@nitrots/api';
-import { BotPlaceComposer, ChestOpenComposer, ClickFurniMessageComposer, ClickUserMessageComposer, FurnitureColorWheelComposer, FurnitureDiceActivateComposer, FurnitureDiceDeactivateComposer, FurnitureFloorUpdateComposer, FurnitureGroupInfoComposer, FurnitureMultiStateComposer, FurnitureOneWayDoorComposer, FurniturePickupComposer, FurniturePlaceComposer, FurniturePostItPlaceComposer, FurnitureRandomStateComposer, FurnitureWallMultiStateComposer, FurnitureWallUpdateComposer, GetCommunication, GetItemDataComposer, GetResolutionAchievementsMessageComposer, PetMoveComposer, PetPlaceComposer, RemoveWallItemComposer, RoomUnitLookComposer, RoomUnitWalkComposer, SetItemDataMessageComposer, SetObjectDataMessageComposer } from '@nitrots/communication';
+import { BotPlaceComposer, BotSkillSaveComposer, ChestOpenComposer, ClickFurniMessageComposer, ClickUserMessageComposer, FurnitureColorWheelComposer, FurnitureDiceActivateComposer, FurnitureDiceDeactivateComposer, FurnitureFloorUpdateComposer, FurnitureGroupInfoComposer, FurnitureMultiStateComposer, FurnitureOneWayDoorComposer, FurniturePickupComposer, FurniturePlaceComposer, FurniturePostItPlaceComposer, FurnitureRandomStateComposer, FurnitureWallMultiStateComposer, FurnitureWallUpdateComposer, GetCommunication, GetItemDataComposer, GetResolutionAchievementsMessageComposer, PetMoveComposer, PetPlaceComposer, RemoveWallItemComposer, RoomUnitLookComposer, RoomUnitWalkComposer, SetItemDataMessageComposer, SetObjectDataMessageComposer } from '@nitrots/communication';
 import { GetConfiguration } from '@nitrots/configuration';
 import { GetEventDispatcher, RoomEngineDimmerStateEvent, RoomEngineObjectEvent, RoomEngineObjectPlacedEvent, RoomEngineObjectPlacedOnUserEvent, RoomEngineObjectPlaySoundEvent, RoomEngineRoomAdEvent, RoomEngineSamplePlaybackEvent, RoomEngineTriggerWidgetEvent, RoomEngineUseProductEvent, RoomObjectBadgeAssetEvent, RoomObjectDataRequestEvent, RoomObjectDimmerStateUpdateEvent, RoomObjectEvent, RoomObjectFloorHoleEvent, RoomObjectFurnitureActionEvent, RoomObjectHSLColorEnableEvent, RoomObjectHSLColorEnabledEvent, RoomObjectMouseEvent, RoomObjectMoveEvent, RoomObjectPlaySoundIdEvent, RoomObjectRoomAdEvent, RoomObjectSamplePlaybackEvent, RoomObjectSoundMachineEvent, RoomObjectStateChangedEvent, RoomObjectTileMouseEvent, RoomObjectWallMouseEvent, RoomObjectWidgetRequestEvent, RoomSpriteMouseEvent } from '@nitrots/events';
 import { GetRoomSessionManager, GetSessionDataManager } from '@nitrots/session';
@@ -12,6 +12,7 @@ import { SelectedRoomObjectData } from './utils';
 export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomObjectEventManager
 {
     private static readonly CLICK_USER_LOOK_DELAY_MS = 120;
+    private static readonly BOT_SKILL_ROTATE = 11;
     private _eventIds: Map<number, Map<string, string>> = new Map();
 
     private _selectedAvatarId: number = -1;
@@ -379,7 +380,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
                 else if(category === RoomObjectCategory.UNIT)
                 {
-                    if(selectedData && (event.objectType === RoomObjectUserType.MONSTER_PLANT))
+                    if(selectedData && ((event.objectType === RoomObjectUserType.MONSTER_PLANT) || (event.objectType === RoomObjectUserType.BOT) || (event.objectType === RoomObjectUserType.RENTABLE_BOT)))
                     {
                         this.modifyRoomObject(roomId, selectedData.id, selectedData.category, RoomObjectOperationType.OBJECT_MOVE_TO);
                     }
@@ -406,6 +407,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                     switch(event.objectType)
                     {
                         case RoomObjectUserType.MONSTER_PLANT:
+                        case RoomObjectUserType.BOT:
                         case RoomObjectUserType.RENTABLE_BOT:
                             this.handleObjectPlace(event, roomId);
                             this.placeObject(roomId, (event instanceof RoomObjectTileMouseEvent), (event instanceof RoomObjectWallMouseEvent));
@@ -443,7 +445,13 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
                     if(category === RoomObjectCategory.UNIT)
                     {
-                        if(event.ctrlKey && !event.altKey && !event.shiftKey && (event.objectType === RoomObjectUserType.RENTABLE_BOT))
+                        if(event.altKey && !event.ctrlKey && !event.shiftKey && ((event.objectType === RoomObjectUserType.BOT) || (event.objectType === RoomObjectUserType.RENTABLE_BOT)))
+                        {
+                            this.modifyRoomObject(roomId, event.objectId, category, RoomObjectOperationType.OBJECT_MOVE);
+                            didMove = true;
+                        }
+
+                        else if(event.ctrlKey && !event.altKey && !event.shiftKey && (event.objectType === RoomObjectUserType.RENTABLE_BOT))
                         {
                             this.modifyRoomObject(roomId, event.objectId, category, RoomObjectOperationType.OBJECT_PICKUP_BOT);
                         }
@@ -453,18 +461,22 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                             this.modifyRoomObject(roomId, event.objectId, category, RoomObjectOperationType.OBJECT_PICKUP_PET);
                         }
 
-                        else if(!event.ctrlKey && !event.altKey && event.shiftKey && (event.objectType === RoomObjectUserType.MONSTER_PLANT))
+                        else if(!event.ctrlKey && !event.altKey && event.shiftKey && ((event.objectType === RoomObjectUserType.MONSTER_PLANT) || (event.objectType === RoomObjectUserType.BOT) || (event.objectType === RoomObjectUserType.RENTABLE_BOT)))
                         {
                             this.modifyRoomObject(roomId, event.objectId, category, RoomObjectOperationType.OBJECT_ROTATE_POSITIVE);
+                            didMove = true;
                         }
 
-                        if(!this._roomEngine.isPlayingGame())
+                        if(!didMove)
                         {
-                            didWalk = true;
-                        }
-                        else
-                        {
-                            didMove = true;
+                            if(!this._roomEngine.isPlayingGame())
+                            {
+                                didWalk = true;
+                            }
+                            else
+                            {
+                                didMove = true;
+                            }
                         }
                     }
 
@@ -613,11 +625,15 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         switch(operation)
         {
             case RoomObjectOperationType.OBJECT_UNDEFINED:
-                if((category === RoomObjectCategory.FLOOR) || (category === RoomObjectCategory.WALL) || (event.objectType === RoomObjectUserType.MONSTER_PLANT))
+                if((category === RoomObjectCategory.FLOOR) || (category === RoomObjectCategory.WALL) || (event.objectType === RoomObjectUserType.MONSTER_PLANT) || (event.objectType === RoomObjectUserType.BOT) || (event.objectType === RoomObjectUserType.RENTABLE_BOT))
                 {
                     if((event.altKey && !event.ctrlKey && !event.shiftKey) || this.decorateModeMove(event))
                     {
-                        if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(new RoomEngineObjectEvent(RoomEngineObjectEvent.REQUEST_MOVE, roomId, event.objectId, category));
+                        if(category === RoomObjectCategory.UNIT)
+                        {
+                            this.modifyRoomObject(roomId, event.objectId, category, RoomObjectOperationType.OBJECT_MOVE);
+                        }
+                        else if(GetEventDispatcher()) GetEventDispatcher().dispatchEvent(new RoomEngineObjectEvent(RoomEngineObjectEvent.REQUEST_MOVE, roomId, event.objectId, category));
                     }
                 }
                 return;
@@ -1112,13 +1128,23 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
 
         let moveValid = true;
 
-        if((selectedData.category === RoomObjectCategory.FLOOR) || (selectedData.category === RoomObjectCategory.UNIT))
+        if(selectedData.category === RoomObjectCategory.FLOOR)
         {
             const stackingHeightMap = this._roomEngine.getFurnitureStackingHeightMap(roomId);
 
             if(!(((event instanceof RoomObjectTileMouseEvent)) && (this.handleFurnitureMove(roomObject, selectedData, Math.trunc(event.tileX + 0.5), Math.trunc(event.tileY + 0.5), stackingHeightMap))))
             {
                 this.handleFurnitureMove(roomObject, selectedData, selectedData.loc.x, selectedData.loc.y, stackingHeightMap);
+
+                moveValid = false;
+            }
+        }
+        else if(selectedData.category === RoomObjectCategory.UNIT)
+        {
+            if(!((event instanceof RoomObjectTileMouseEvent) && this.handleUserPlace(roomObject, Math.trunc(event.tileX + 0.5), Math.trunc(event.tileY + 0.5), this._roomEngine.getLegacyWallGeometry(roomId))))
+            {
+                roomObject.setLocation(selectedData.loc);
+                roomObject.setDirection(selectedData.dir);
 
                 moveValid = false;
             }
@@ -1160,9 +1186,9 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
         }
         else
         {
-            this.setFurnitureAlphaMultiplier(roomObject, 0);
+            this.setFurnitureAlphaMultiplier(roomObject, (selectedData.category === RoomObjectCategory.UNIT) ? 0.5 : 0);
 
-            this._roomEngine.setObjectMoverIconSpriteVisible(true);
+            this._roomEngine.setObjectMoverIconSpriteVisible(selectedData.category !== RoomObjectCategory.UNIT);
         }
     }
 
@@ -1753,7 +1779,7 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                             GetCommunication().connection.send(new PetPlaceComposer(objectId, Math.trunc(x), Math.trunc(y)));
                         }
 
-                        else if(selectedData.typeId === RoomObjectType.RENTABLE_BOT)
+                        else if((selectedData.typeId === RoomObjectType.BOT) || (selectedData.typeId === RoomObjectType.RENTABLE_BOT))
                         {
                             GetCommunication().connection.send(new BotPlaceComposer(objectId, Math.trunc(x), Math.trunc(y)));
                         }
@@ -1800,6 +1826,17 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
             case RoomObjectOperationType.OBJECT_ROTATE_NEGATIVE:
                 if(GetCommunication().connection)
                 {
+                    if((roomObject.type === RoomObjectUserType.BOT) || (roomObject.type === RoomObjectUserType.RENTABLE_BOT))
+                    {
+                        const roomSession = GetRoomSessionManager().getSession(roomId);
+                        const userData = roomSession?.userDataManager.getUserDataByIndex(objectId);
+
+                        if(userData) GetCommunication().connection.send(new BotSkillSaveComposer(userData.webID, RoomObjectEventHandler.BOT_SKILL_ROTATE, ''));
+
+                        shouldReset = false;
+                        break;
+                    }
+
                     let direction = 0;
 
                     if(operation == RoomObjectOperationType.OBJECT_ROTATE_NEGATIVE)
@@ -1872,9 +1909,30 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
             case RoomObjectOperationType.OBJECT_MOVE:
                 shouldReset = false;
                 this.setFurnitureAlphaMultiplier(roomObject, 0.5);
-                this.setSelectedRoomObjectData(roomId, roomObject.id, category, roomObject.getLocation(), roomObject.getDirection(), operation);
-                this._roomEngine.setObjectMoverIconSprite(roomObject.id, category, true);
-                this._roomEngine.setObjectMoverIconSpriteVisible(false);
+                this.setSelectedRoomObjectData(
+                    roomId,
+                    roomObject.id,
+                    category,
+                    roomObject.getLocation(),
+                    roomObject.getDirection(),
+                    operation,
+                    roomObject.type === RoomObjectUserType.RENTABLE_BOT
+                        ? RoomObjectType.RENTABLE_BOT
+                        : roomObject.type === RoomObjectUserType.BOT
+                          ? RoomObjectType.BOT
+                          : roomObject.type === RoomObjectUserType.MONSTER_PLANT
+                            ? RoomObjectType.PET
+                            : 0
+                );
+                if(category === RoomObjectCategory.UNIT)
+                {
+                    this._roomEngine.removeObjectMoverIconSprite();
+                }
+                else
+                {
+                    this._roomEngine.setObjectMoverIconSprite(roomObject.id, category, true);
+                    this._roomEngine.setObjectMoverIconSpriteVisible(false);
+                }
                 break;
             case RoomObjectOperationType.OBJECT_MOVE_TO: {
                 const selectedData = this.getSelectedRoomObjectData(roomId);
@@ -1919,7 +1977,17 @@ export class RoomObjectEventHandler implements IRoomCanvasMouseListener, IRoomOb
                         {
                             const userData = roomSession.userDataManager.getUserDataByIndex(objectId);
 
-                            if(userData) GetCommunication().connection.send(new PetMoveComposer(userData.webID, location.x, location.y, direction));
+                            if(userData)
+                            {
+                                if((roomObject.type === RoomObjectUserType.BOT) || (roomObject.type === RoomObjectUserType.RENTABLE_BOT))
+                                {
+                                    GetCommunication().connection.send(new BotPlaceComposer(Math.abs(userData.webID), location.x, location.y));
+                                }
+                                else
+                                {
+                                    GetCommunication().connection.send(new PetMoveComposer(userData.webID, location.x, location.y, direction));
+                                }
+                            }
                         }
                     }
                 }
