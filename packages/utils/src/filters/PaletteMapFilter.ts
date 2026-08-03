@@ -23,6 +23,8 @@ export class PaletteMapFilter extends Filter
         uChannel: Float32Array
     };
 
+    private _lutTexture: Texture = null;
+
     constructor(options: PaletteMapFilterOptions)
     {
         options = { ...PaletteMapFilter.DEFAULT_OPTIONS, ...options };
@@ -109,8 +111,24 @@ export class PaletteMapFilter extends Filter
         });
 
         this.uniforms = this.resources.paletteMapUniforms.uniforms;
+        this._lutTexture = lutTexture;
 
         Object.assign(this, options);
+    }
+
+    public destroy(): void
+    {
+        // The LUT is a BufferImageSource allocated per instance. Shader.destroy() only drops the
+        // resources map, so without this the GPU texture stays alive for the life of the renderer.
+        super.destroy(false);
+
+        // The GlProgram comes from GlProgram.from(), which caches by source — it is shared with
+        // every other PaletteMapFilter and must NOT be destroyed here.
+        if(this._lutTexture)
+        {
+            this._lutTexture.destroy(true);
+            this._lutTexture = null;
+        }
     }
 
     public apply(

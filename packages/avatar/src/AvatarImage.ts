@@ -2,6 +2,7 @@ import { AvatarAction, AvatarDirectionAngle, AvatarScaleType, AvatarSetType, IAc
 import { GetRenderer, GetTexturePool, GetTickerTime, PaletteMapFilter, TextureUtils } from '@nitrots/utils';
 import { ColorMatrixFilter, Container, Filter, RenderTexture, Sprite, Texture } from 'pixi.js';
 import { AvatarFigureContainer } from './AvatarFigureContainer';
+import { AvatarImageBodyPartContainer } from './AvatarImageBodyPartContainer';
 import { AvatarStructure } from './AvatarStructure';
 import { EffectAssetDownloadManager } from './EffectAssetDownloadManager';
 import { ActiveActionData } from './actions';
@@ -48,6 +49,11 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
     private _cachedBodyPartsDirection: number = -1;
     private _cachedBodyPartsGeometryType: string = null;
     private _cachedBodyPartsAvatarSet: string = null;
+    private _grayscaleFilter: ColorMatrixFilter = null;
+    private _grayscaleFilterChannel: string = null;
+    private _paletteMapFilter: PaletteMapFilter = null;
+    private _paletteMapFilterSource: IAvatarDataContainer = null;
+    private _transientBodyParts: AvatarImageBodyPartContainer[] = [];
 
     constructor(
         private _structure: AvatarStructure,
@@ -91,6 +97,9 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
             this._cache.dispose();
             this._cache = null;
         }
+
+        this.disposeTransientBodyParts();
+        this.disposeFilters();
 
         this._canvasOffsets = null;
         this._disposed = true;
@@ -206,6 +215,8 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         const bodyParts = this.getBodyParts(setType, this._mainAction.definition.geometryType, this._mainDirection);
         const container = new Container();
 
+        this._transientBodyParts.length = 0;
+
         let partCount = (bodyParts.length - 1);
 
         while(partCount >= 0)
@@ -235,6 +246,11 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
                     partContainer.y = Math.floor(point.y);
 
                     container.addChild(partContainer);
+
+                    // Cacheable parts stay owned by AvatarImageCache. Non-cacheable ones are
+                    // rendered fresh every time and never stored, so this is the only reference
+                    // that will ever exist — the render path has to destroy them itself.
+                    if(!part.isCacheable) this._transientBodyParts.push(part);
                 }
             }
 
@@ -255,10 +271,7 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
             {
                 this.convertToGrayscale(container);
 
-                const paletteMapFilter = new PaletteMapFilter({
-                    palette: this._avatarSpriteData.reds,
-                    channel: PaletteMapFilter.CHANNEL_RED
-                });
+                const paletteMapFilter = this.getPaletteMapFilter(this._avatarSpriteData);
 
                 if(container.filters === undefined || container.filters === null) container.filters = [ paletteMapFilter ];
                 else container.filters = [ ...(container.filters as readonly Filter[]), paletteMapFilter ];
@@ -307,6 +320,8 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         }
 
         container.destroy({ children: true });
+
+        this.disposeTransientBodyParts();
 
         //@ts-ignore
         this._activeTexture.source.hitMap = null;
@@ -724,8 +739,68 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
         this._changes = true;
     }
 
+    private disposeTransientBodyParts(): void
+    {
+        if(!this._transientBodyParts.length) return;
+
+        for(const part of this._transientBodyParts) part && part.dispose();
+
+        this._transientBodyParts.length = 0;
+    }
+
+    private getPaletteMapFilter(spriteData: IAvatarDataContainer): PaletteMapFilter
+    {
+        // Rebuilt only when the palette behind it actually changes. It used to be constructed on
+        // every render, and each instance allocates a GPU LUT texture that nothing ever released.
+        if(this._paletteMapFilter && (this._paletteMapFilterSource === spriteData)) return this._paletteMapFilter;
+
+        if(this._paletteMapFilter) this._paletteMapFilter.destroy();
+
+        this._paletteMapFilter = new PaletteMapFilter({
+            palette: spriteData.reds,
+            channel: PaletteMapFilter.CHANNEL_RED
+        });
+
+        this._paletteMapFilterSource = spriteData;
+
+        return this._paletteMapFilter;
+    }
+
+    private disposeFilters(): void
+    {
+        if(this._grayscaleFilter)
+        {
+            this._grayscaleFilter.destroy();
+            this._grayscaleFilter = null;
+            this._grayscaleFilterChannel = null;
+        }
+
+        if(this._paletteMapFilter)
+        {
+            this._paletteMapFilter.destroy();
+            this._paletteMapFilter = null;
+            this._paletteMapFilterSource = null;
+        }
+    }
+
     private convertToGrayscale(container: Container, channel: string = 'CHANNELS_EQUAL'): Container
     {
+        const filter = this.getGrayscaleFilter(channel);
+
+        if(container.filters === undefined || container.filters === null) container.filters = [ filter ];
+        else container.filters = [ ...(container.filters as readonly Filter[]), filter ];
+
+        return container;
+    }
+
+    private getGrayscaleFilter(channel: string): ColorMatrixFilter
+    {
+        // Same story as the palette filter: the matrix only depends on the channel, so one filter
+        // per AvatarImage is enough. Pixi never destroys the filters on a container it destroys.
+        if(this._grayscaleFilter && (this._grayscaleFilterChannel === channel)) return this._grayscaleFilter;
+
+        if(this._grayscaleFilter) this._grayscaleFilter.destroy();
+
         let redWeight = 0.33;
         let greenWeight = 0.33;
         let blueWeight = 0.33;
@@ -768,10 +843,10 @@ export class AvatarImage implements IAvatarImage, IAvatarEffectListener
             0, 0, 0, 1, 0 // Alpha channel
         ];
 
-        if(container.filters === undefined || container.filters === null) container.filters = [ filter ];
-        else container.filters = [ ...(container.filters as readonly Filter[]), filter ];
+        this._grayscaleFilter = filter;
+        this._grayscaleFilterChannel = channel;
 
-        return container;
+        return filter;
     }
 
     public isPlaceholder(): boolean

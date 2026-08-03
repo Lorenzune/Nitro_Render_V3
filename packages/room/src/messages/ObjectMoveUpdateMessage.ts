@@ -11,10 +11,8 @@ export class ObjectMoveUpdateMessage extends RoomObjectUpdateMessage
     private _elapsed: number;
     private _anchorObject: IRoomObjectController;
     private _anchorOffset: IVector3D;
-    private _animationEffect: number;
-    private _gravityIntensity: number;
 
-    constructor(location: IVector3D, targetLocation: IVector3D, direction: IVector3D, isSlide: boolean = false, duration: number = ObjectMoveUpdateMessage.DEFAULT_DURATION, elapsed: number = 0, anchorObject: IRoomObjectController = null, anchorOffset: IVector3D = null, animationEffect: number = 0, gravityIntensity: number = 0)
+    constructor(location: IVector3D, targetLocation: IVector3D, direction: IVector3D, isSlide: boolean = false, duration: number = ObjectMoveUpdateMessage.DEFAULT_DURATION, elapsed: number = 0, anchorObject: IRoomObjectController = null, anchorOffset: IVector3D = null)
     {
         super(location, direction);
 
@@ -24,8 +22,6 @@ export class ObjectMoveUpdateMessage extends RoomObjectUpdateMessage
         this._elapsed = elapsed;
         this._anchorObject = anchorObject;
         this._anchorOffset = anchorOffset;
-        this._animationEffect = animationEffect;
-        this._gravityIntensity = gravityIntensity;
     }
 
     public get targetLocation(): IVector3D
@@ -58,15 +54,5 @@ export class ObjectMoveUpdateMessage extends RoomObjectUpdateMessage
     public get anchorOffset(): IVector3D
     {
         return this._anchorOffset;
-    }
-
-    public get animationEffect(): number
-    {
-        return this._animationEffect;
-    }
-
-    public get gravityIntensity(): number
-    {
-        return this._gravityIntensity;
     }
 }

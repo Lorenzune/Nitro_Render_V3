@@ -122,6 +122,10 @@ export class RoomCameraWidgetManager implements IRoomCameraWidgetManager
         renderTexture.destroy(true);
         container.destroy({ children: true });
 
+        // Container.destroy() drops its filter references without destroying them, so every
+        // preview render of an effect stack used to leak one ColorMatrixFilter per effect.
+        for(const filter of filters) filter.destroy();
+
         return image;
     }
 

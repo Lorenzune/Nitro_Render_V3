@@ -2,7 +2,6 @@ export class IncomingHeader
 {
     // These packets do not belong to this revision, so these are custom packet ids
     public static AREA_HIDE = 6001;
-    public static WIRED_FURNI_GRAVITY = 9415;
 
     // MENTIONS
     public static MENTION_RECEIVED = 4801;
@@ -554,6 +553,7 @@ export class IncomingHeader
     public static SNOWWAR_QUEUE_POSITION = 5001;
     public static SNOWWAR_START_LOBBY_COUNTER = 5003;
     public static SNOWWAR_GAME_ENDED = 5006;
+    public static SNOWWAR_LOBBY_TEAMS = 5007;
     public static SNOWWAR_GAMES_LEFT = 5010;
     public static SNOWWAR_GAMES_INFORMATION = 5012;
     public static SNOWWAR_GAME_STATUS = 5015;

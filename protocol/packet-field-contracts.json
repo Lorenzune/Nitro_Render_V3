@@ -6458,6 +6458,22 @@
       "fields": []
     },
     {
+      "name": "SNOWWAR_EXIT_EDITOR",
+      "direction": "client_to_server",
+      "header": 6014,
+      "java": {
+        "symbol": "UNKNOWN_SNOWSTORM_6014",
+        "className": "SnowStormExitEditorEvent",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/incoming/snowwar/SnowStormExitEditorEvent.java"
+      },
+      "typescript": {
+        "symbol": "SNOWWAR_EXIT_EDITOR",
+        "className": "SnowWarExitEditorComposer",
+        "path": "packages/communication/src/messages/outgoing/game/snowwar/SnowWarExitEditorComposer.ts"
+      },
+      "fields": []
+    },
+    {
       "name": "REQUEST_PREFIXES",
       "direction": "client_to_server",
       "header": 7011,
@@ -6660,6 +6676,60 @@
           "kind": "scalar",
           "type": "string",
           "name": "displayOrder"
+        }
+      ]
+    },
+    {
+      "name": "DELETE_NICK_ICON",
+      "direction": "client_to_server",
+      "header": 7020,
+      "java": {
+        "symbol": "DeleteNickIconEvent",
+        "className": "DeleteNickIconEvent",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/incoming/inventory/nickicons/DeleteNickIconEvent.java"
+      },
+      "typescript": {
+        "symbol": "DELETE_NICK_ICON",
+        "className": "DeleteNickIconComposer",
+        "path": "packages/communication/src/messages/outgoing/inventory/nickicons/DeleteNickIconComposer.ts"
+      },
+      "fields": [
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "nickIconId"
+        }
+      ]
+    },
+    {
+      "name": "EMBEDDED_MEDIA_CONTROL",
+      "direction": "client_to_server",
+      "header": 8004,
+      "java": {
+        "symbol": "EmbeddedMediaControlEvent",
+        "className": "EmbeddedMediaControlEvent",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/incoming/rooms/items/youtube/EmbeddedMediaControlEvent.java"
+      },
+      "typescript": {
+        "symbol": "EMBEDDED_MEDIA_CONTROL",
+        "className": "EmbeddedMediaControlComposer",
+        "path": "packages/communication/src/messages/outgoing/room/youtube/EmbeddedMediaControlComposer.ts"
+      },
+      "fields": [
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "furniId"
+        },
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "action"
+        },
+        {
+          "kind": "scalar",
+          "type": "string",
+          "name": "url"
         }
       ]
     },
@@ -15061,33 +15131,6 @@
       ]
     },
     {
-      "name": "SNOWWAR_GAMES_INFORMATION",
-      "direction": "server_to_client",
-      "header": 5012,
-      "java": {
-        "symbol": "SnowStormGamesInformationComposer",
-        "className": "SnowStormGamesInformationComposer",
-        "path": "Emulator/src/main/java/com/eu/habbo/messages/outgoing/snowwar/SnowStormGamesInformationComposer.java"
-      },
-      "typescript": {
-        "symbol": "SNOWWAR_GAMES_INFORMATION",
-        "className": "SnowWarGamesInformationParser",
-        "path": "packages/communication/src/messages/parser/game/snowwar/SnowWarGamesInformationParser.ts"
-      },
-      "fields": [
-        {
-          "kind": "scalar",
-          "type": "int",
-          "name": ""
-        },
-        {
-          "kind": "scalar",
-          "type": "int",
-          "name": ""
-        }
-      ]
-    },
-    {
       "name": "SNOWWAR_ON_STAGE_START",
       "direction": "server_to_client",
       "header": 5017,
@@ -15506,6 +15549,63 @@
           "kind": "scalar",
           "type": "int",
           "name": ""
+        }
+      ]
+    },
+    {
+      "name": "EMBEDDED_MEDIA_STATE",
+      "direction": "server_to_client",
+      "header": 8004,
+      "java": {
+        "symbol": "EmbeddedMediaStateComposer",
+        "className": "EmbeddedMediaStateComposer",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/outgoing/rooms/youtube/EmbeddedMediaStateComposer.java"
+      },
+      "typescript": {
+        "symbol": "EMBEDDED_MEDIA_STATE",
+        "className": "EmbeddedMediaStateParser",
+        "path": "packages/communication/src/messages/parser/room/youtube/EmbeddedMediaStateParser.ts"
+      },
+      "fields": [
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "furniId"
+        },
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "action"
+        },
+        {
+          "kind": "scalar",
+          "type": "string",
+          "name": "url"
+        },
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "state"
+        },
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "startedAt"
+        },
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "offset"
+        },
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "revision"
+        },
+        {
+          "kind": "scalar",
+          "type": "int",
+          "name": "broadcasterId"
         }
       ]
     },
@@ -18755,6 +18855,38 @@
         "path": "packages/communication/src/messages/outgoing/handshake/ClientHelloMessageComposer.ts"
       },
       "reason": "TypeScript analyzer: Outgoing value `NITRO-${NitroVersion.RENDERER_VERSION.replaceAll(\u0027.\u0027, \u0027-\u0027)}` has no statically resolvable wire type"
+    },
+    {
+      "name": "SNOWWAR_LOBBY_TEAMS",
+      "direction": "server_to_client",
+      "header": 5007,
+      "java": {
+        "symbol": "SnowStormLobbyTeamsComposer",
+        "className": "SnowStormLobbyTeamsComposer",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/outgoing/snowwar/SnowStormLobbyTeamsComposer.java"
+      },
+      "typescript": {
+        "symbol": "SNOWWAR_LOBBY_TEAMS",
+        "className": "SnowWarLobbyTeamsParser",
+        "path": "packages/communication/src/messages/parser/game/snowwar/SnowWarLobbyTeamsParser.ts"
+      },
+      "reason": "Java analyzer: Data-dependent packet operations in ForStmt inside composeInternal (per-player roster loop)"
+    },
+    {
+      "name": "SNOWWAR_GAMES_INFORMATION",
+      "direction": "server_to_client",
+      "header": 5012,
+      "java": {
+        "symbol": "SnowStormGamesInformationComposer",
+        "className": "SnowStormGamesInformationComposer",
+        "path": "Emulator/src/main/java/com/eu/habbo/messages/outgoing/snowwar/SnowStormGamesInformationComposer.java"
+      },
+      "typescript": {
+        "symbol": "SNOWWAR_GAMES_INFORMATION",
+        "className": "SnowWarGamesInformationParser",
+        "path": "packages/communication/src/messages/parser/game/snowwar/SnowWarGamesInformationParser.ts"
+      },
+      "reason": "Java composer appends the trailing min-players int and can-edit boolean unconditionally; TypeScript parser reads them as an optional bytesAvailable-gated tail for older servers"
     },
     {
       "name": "SNOWWAR_SAVE_EDITOR",

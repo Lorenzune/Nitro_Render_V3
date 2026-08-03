@@ -27,8 +27,6 @@ export * from './RoomDimmerPresetsMessageData';
 export * from './RoomDimmerPresetsMessageParser';
 export * from './RoomMessageNotificationMessageParser';
 export * from './WelcomeGiftStatusParser';
-export * from './WiredFurniGravityMessageParser';
-export * from './WiredFurniOpacityMessageParser';
 export * from './floor';
 export * from './wall';
 export * from './youtube';

@@ -26,7 +26,7 @@ jobs:
     env:
       E2E_DB_HOST: 127.0.0.1
       E2E_DB_PORT: "3306"
-      E2E_DB_NAME: polaris_e2e
+      E2E_DB_NAME: polaris_e2e_login_reconnect
       E2E_DB_USER: root
       E2E_DB_PASSWORD: root
       E2E_SSO_TICKET: e2e-reconnect-ticket
